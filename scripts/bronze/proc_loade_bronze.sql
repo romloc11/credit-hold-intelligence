@@ -21,8 +21,13 @@ Silver layer.
 Error handling is implemented using TRY/CATCH blocks to ensure
 pipeline reliability.
 
+Data quality filter: 
+records prior to 2026-03-10 are excluded due to identified inconsistencies during initial system operation
+
 ======================================================================
 */
+
+
 
 CREATE OR ALTER PROCEDURE dbo.bronze_load AS
 BEGIN
@@ -77,6 +82,7 @@ BEGIN
                 cancelado_fecha,
                 usuario_libero
             FROM pedidos_pool_clientes
+            WHERE creado_en >= ''2026-03-11''
         ');
         SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds';
@@ -103,6 +109,29 @@ BEGIN
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds';
         PRINT '---------------------------------------------------------------------------------------------';
 
+
+        -- ESTATUS
+        SET @start_time = GETDATE();
+        PRINT '>> Truncating Table: dbo.bronze_estatus_pool';
+        TRUNCATE TABLE dbo.bronze_estatus_pool;
+        PRINT '>> Inserting Data Into: dbo.bronze_estatus_pool';
+        INSERT INTO dbo.bronze_estatus_pool
+        (
+            estatus,
+            descripcion
+        )
+        SELECT
+            estatus,
+            descripcion
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT estatus, descripcion
+            FROM estatus_pool
+        ');
+        SET @end_time = GETDATE();
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
         SET @batch_end_time = GETDATE();
         PRINT '===========================================';
         PRINT 'Loading Bronze Layer is Completed';
@@ -119,3 +148,4 @@ BEGIN
         THROW;
     END CATCH
 END
+

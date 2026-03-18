@@ -61,7 +61,12 @@ BEGIN
 		creado_en,
 		liberado_fecha,
 		cancelado_fecha,
-		COALESCE(usuario_libero, 'Sistema') AS usuario_libero --Normalize usuario to readable format
+		CASE 
+			WHEN usuario_libero IS NULL 
+				 AND estatus IN (1, 3) -- 1=Liberado, 3=Cancelado
+				THEN 'sistema'
+			ELSE usuario_libero
+		END AS usuario_libero
 		FROM (
 			SELECT 
 			*,
@@ -126,3 +131,4 @@ BEGIN
         THROW;
     END CATCH
 END
+

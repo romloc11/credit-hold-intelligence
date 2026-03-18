@@ -1,3 +1,12 @@
+/*
+====================================
+Quality Checks
+====================================
+Script Purpose:
+  This script performs various quality chacks for data consistency, accuracy and standardization 
+  across the silver tables.
+*/
+
 --Check duplicates or nulls in number of order
 --Expectetion: no results
 

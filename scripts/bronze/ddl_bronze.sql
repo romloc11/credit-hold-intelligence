@@ -25,8 +25,7 @@ CREATE TABLE dbo.bronze_pedidos_pool_clientes (
     creado_en DATETIME,
     liberado_fecha DATETIME,
     cancelado_fecha DATETIME,
-    usuario_libero VARCHAR(100),
-    ingestion_date DATETIME DEFAULT GETDATE()
+    usuario_libero VARCHAR(100)
 );
 
 
@@ -37,6 +36,5 @@ GO
 
 CREATE TABLE dbo.bronze_vendedores (
     usuario VARCHAR(50),
-    nombre VARCHAR(100),
-    ingestion_date DATETIME DEFAULT GETDATE()
+    nombre VARCHAR(100)
 ); 

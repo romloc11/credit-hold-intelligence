@@ -4,7 +4,7 @@ DDL Scripts: CREATE BRONZE TABLES
 =====================================================================================
 Script Prupose:
     This script creates the bronze tables in the dbo schema, dropping existing tables 
-    if the already exist.
+    if they already exist.
 Run this script to redifine the DDL sctructure of 'bronze' tables.
 =====================================================================================
 */
@@ -38,3 +38,17 @@ CREATE TABLE dbo.bronze_vendedores (
     usuario VARCHAR(50),
     nombre VARCHAR(100)
 ); 
+
+
+IF OBJECT_ID ('dbo.bronze_estatus_pool', 'U') IS NOT NULL
+    DROP TABLE dbo.bronze_estatus_pool
+
+GO
+
+CREATE TABLE dbo.bronze_estatus_pool (
+    estatus INT,
+    descripcion VARCHAR(255)
+); 
+
+
+

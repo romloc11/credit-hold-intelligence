@@ -1,3 +1,4 @@
+
 /*
 ======================================================================
 Procedure: dbo.bronze_load
@@ -48,8 +49,7 @@ BEGIN
             creado_en,
             liberado_fecha,
             cancelado_fecha,
-            usuario_libero,
-            ingestion_date
+            usuario_libero
         )
         SELECT
             pedido,
@@ -62,8 +62,7 @@ BEGIN
             creado_en,
             liberado_fecha,
             cancelado_fecha,
-            usuario_libero,
-            GETDATE()
+            usuario_libero
         FROM OPENQUERY(CiosaCOM, '
             SELECT
                 pedido,
@@ -91,13 +90,11 @@ BEGIN
         INSERT INTO dbo.bronze_vendedores
         (
             usuario,
-            nombre,
-            ingestion_date
+            nombre
         )
         SELECT
             usuario,
-            nombre,
-            GETDATE()
+            nombre
         FROM OPENQUERY(CiosaCOM, '
             SELECT usuario, nombre
             FROM vendedores

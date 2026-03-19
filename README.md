@@ -6,7 +6,7 @@ The goal is to enable visibility into operational bottlenecks, resolution times,
 
 ---
 
-## Data Architecture  🏗️ 
+🏗️ Data Architecture  
 
 The project follows a Medallion Architecture with three layers:
 
@@ -27,7 +27,7 @@ Provides a star schema optimized for analytics:
 
 ---
 
-## Project Overview
+📖 Project Overview
 
 This project includes:
 

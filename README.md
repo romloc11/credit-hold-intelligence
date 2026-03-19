@@ -1,62 +1,136 @@
-🧾 Credit Hold Intelligence Dashboard
-📌 Overview
+# Data Warehouse – Credit & Collections (Pedidos en Pool)
 
-This project delivers an end-to-end data solution to monitor and analyze credit holds in the Order-to-Cash process, enabling better decision-making in credit and collections.
+This project presents an end-to-end data warehouse solution focused on analyzing orders held in credit review (pool). It covers data ingestion, transformation, modeling, and analytical layer design using SQL Server.
 
-⚙️ Tech Stack
+The goal is to enable visibility into operational bottlenecks, resolution times, and credit risk indicators.
 
-SQL Server (Linked Server)
+---
 
-MySQL (source system)
+## Data Architecture  🏗️ 
 
-Power BI
+The project follows a Medallion Architecture with three layers:
 
-DAX
+**Bronze Layer**  
+Stores raw data extracted from the transactional system (CIOSA) via Linked Server. Data is ingested without transformations.
 
-SQL Server Agent (proposed automation)
+**Silver Layer**  
+Applies data cleansing and transformation:
+- Deduplication of orders
+- Standardization of text fields
+- Mapping of status codes
+- Basic business rules
 
-🏗️ Architecture
-MySQL → SQL Server (OPENQUERY) → Data Model → Power BI Dashboard
-🔍 Key Features
+**Gold Layer**  
+Provides a star schema optimized for analytics:
+- Fact table for orders in pool
+- Dimension tables for status and users (vendedores)
 
-Identification of credit block reasons
+---
 
-Tracking order lifecycle (created → released → canceled)
+## Project Overview
 
-User performance analysis
+This project includes:
 
-Time-to-resolution metrics
+**Data Architecture**  
+Design of a layered data warehouse using Bronze, Silver, and Gold structure.
 
-Daily trend monitoring
+**ETL Pipelines**  
+Development of SQL-based stored procedures to load and transform data across layers.
 
-📊 Key Insights
+**Data Modeling**  
+Implementation of a star schema to support scalable analytics use cases.
 
-Majority of blocks driven by saldo vencido
+**Analytics Focus**  
+Analysis of:
+- Time spent in pool (SLA / operational efficiency)
+- Reasons for credit holds (motivo_pool)
+- Resolution status (liberado, cancelado, retenido)
+- User involvement in resolution
 
-Clear visibility into user performance
+---
 
-Detection of bottlenecks in credit release process
+## Key Use Cases
 
-🧠 Data Modeling
+- Monitor operational performance in credit review
+- Identify delays in order release
+- Analyze main causes of credit blockage
+- Support decision-making in credit and collections
 
-Fact table: pool_credito
+---
 
-Date dimension: Calendario
+## Tech Stack
 
-Star schema approach
+- SQL Server
+- T-SQL (Stored Procedures, Views)
+- Linked Server (CIOSACOM)
+- Draw.io (Data modeling and architecture diagrams)
+- GitHub (Version control)
 
-⚡ Performance Optimization
+---
 
-Snapshot table to reduce load on source system
+## Data Source
 
-Pre-calculated indicators in SQL
+| Field        | Value                                    |
+|--------------|------------------------------------------|
+| Source       | CIOSA operational system                 |
+| Object Type  | Relational database (transactional)      |
+| Interface    | SQL Server Linked Server (CIOSACOM)      |
 
-Efficient DAX measures
+---
 
-🧪 Data Validation
+## Repository Structure 🏗️ 
+IMAGEN
 
-Cross-check with source system counts
 
-Null and edge-case validation
+---
 
-Business rule validation (status mapping)
+## Data Model (Gold Layer)
+
+**Fact Table**
+- `gold_fact_pedidos_pool`
+  - Contains one record per order in pool
+  - Includes metrics such as:
+    - `horas_en_pool`
+    - `minutos_en_pool`
+    - `valor_pedido`
+
+**Dimension Tables**
+- `gold_dim_estatus_pool`
+- `gold_dim_vendedores`
+
+Designed to support future scalability with additional entities:
+- clientes
+- facturas
+- pagos
+- notas de crédito
+
+---
+
+## Project Requirements
+
+**Objective**  
+Build a data warehouse to analyze orders in credit hold and improve operational visibility.
+
+**Scope**
+- Focus on current operational data (no historization)
+- Integrate data from a single transactional source
+- Enable analytical queries through structured modeling
+
+**Data Quality**
+- Remove duplicates using latest record logic
+- Normalize user and status fields
+- Handle null values based on business rules
+
+---
+
+## Future Improvements
+
+- Add dimension for client
+- Expand fact table to include full order lifecycle
+- Integrate invoices and payments
+- Implement historization (Slowly Changing Dimensions)
+- Connect to BI tools (Power BI / Tableau)
+
+---
+
+

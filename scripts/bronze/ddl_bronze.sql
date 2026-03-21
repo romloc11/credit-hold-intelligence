@@ -117,11 +117,18 @@ IF OBJECT_ID('bronze.clientes', 'U') IS NOT NULL
 GO
 
 CREATE TABLE bronze.clientes (
-    cliente_id     NVARCHAR(50),
-    nombre         NVARCHAR(255),
-    rfc            NVARCHAR(50),
-    contacto       NVARCHAR(255),
-    domicilio      NVARCHAR(255)
+
+    cliente_id NVARCHAR(50),
+    nombre NVARCHAR(255),
+    rfc NVARCHAR(50),
+    contacto NVARCHAR(255),
+    domicilio NVARCHAR(255),
+
+    limite_credito DECIMAL(18,2),
+    plazo_dias INT,
+
+    fecha_modificacion DATETIME DEFAULT GETDATE()
+
 );
 GO
 

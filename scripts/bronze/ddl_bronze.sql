@@ -127,7 +127,7 @@ CREATE TABLE bronze.clientes (
     limite_credito DECIMAL(18,2),
     plazo_dias INT,
 
-    fecha_modificacion DATETIME DEFAULT GETDATE()
+    fecha_modificacion DATETIME
 
 );
 GO

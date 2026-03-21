@@ -422,18 +422,7 @@ BEGIN
             limite_credito,
             plazo_dias,
             fecha_modificacion
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                cliente_id,
-                nombre,
-                rfc,
-                contacto,
-                domicilio,
-                limite_credito,
-                plazo_dias,
-                fecha_modificacion
-            FROM clientes
-        ');
+        FROM CRM.dbo.clientes;
         
         SET @end_time = GETDATE();
         
@@ -466,13 +455,7 @@ BEGIN
             paqueteria_id,
             nombre_paqueteria,
             tipo_servicio
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                paqueteria_id,
-                nombre_paqueteria,
-                tipo_servicio
-            FROM paqueterias
-        ');
+        FROM CRM.dbo.paqueterias;
         
         SET @end_time = GETDATE();
         
@@ -502,13 +485,7 @@ BEGIN
             ruta_id,
             ruta,
             zona
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                ruta_id,
-                ruta,
-                zona
-            FROM rutas
-        ');
+        FROM CRM.dbo.rutas;
         
         SET @end_time = GETDATE();
         
@@ -540,14 +517,7 @@ BEGIN
             ruta_id,
             nombre,
             contacto
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                vendedor_id,
-                ruta_id,
-                nombre,
-                contacto
-            FROM vendedores
-        ');
+        FROM CRM.dbo.vendedores;
         
         SET @end_time = GETDATE();
         
@@ -577,13 +547,7 @@ BEGIN
             gerente_venta_id,
             nombre,
             contacto
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                gerente_venta_id,
-                nombre,
-                contacto
-            FROM gerente_venta
-        ');
+        FROM CRM.dbo.gerentes_de_venta;
         
         SET @end_time = GETDATE();
         
@@ -613,13 +577,7 @@ BEGIN
             ejecutivo_credito_id,
             nombre,
             contacto
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                ejecutivo_credito_id,
-                nombre,
-                contacto
-            FROM ejecutivo_credito
-        ');
+        FROM CRM.dbo.ejecutivos_de_credito;
         
         SET @end_time = GETDATE();
         
@@ -649,13 +607,7 @@ BEGIN
             telemarketing_id,
             nombre,
             contacto
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                telemarketing_id,
-                nombre,
-                contacto
-            FROM telemarketing
-        ');
+        FROM CRM.dbo.telemarketing;
         
         SET @end_time = GETDATE();
         
@@ -685,13 +637,7 @@ BEGIN
             gerente_regional_id,
             nombre,
             contacto
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                gerente_regional_id,
-                nombre,
-                contacto
-            FROM gerente_regional
-        ');
+        FROM CRM.dbo.gerente_regional;
         
         SET @end_time = GETDATE();
         

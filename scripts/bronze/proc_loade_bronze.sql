@@ -30,11 +30,13 @@ BEGIN
 
         SET @batch_start_time = GETDATE();
 
-        PRINT '====================================';
-        PRINT 'Loading Bronze Layer';
-        PRINT '====================================';
+    PRINT '====================================';
+    PRINT 'Loading Bronze Layer';
+    PRINT '====================================';
 
-
+        PRINT'---------------------------------------'
+        PRINT 'Loading CIOSACOM Bronze Tables'
+        PRINT'---------------------------------------'
         /* ==========================================================
            PEDIDOS
         ========================================================== */
@@ -136,18 +138,115 @@ BEGIN
 
 
         /* ==========================================================
+           USUARIO LIBERACION
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.usuario_libero';
+        
+        TRUNCATE TABLE bronze.usuario_libero;
+        
+        PRINT '>> Inserting Data Into: bronze.usuario_libero';
+        
+        INSERT INTO bronze.usuario_libero
+        (
+            usuario_libero_id,
+            nombre
+        )
+        SELECT
+            usuario_libero_id,
+            nombre
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                usuario_libero_id,
+                nombre
+            FROM usuario_libero
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           MOTIVOS POOL
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.motivos_pool';
+        
+        TRUNCATE TABLE bronze.motivos_pool;
+        
+        PRINT '>> Inserting Data Into: bronze.motivos_pool';
+        
+        INSERT INTO bronze.motivos_pool
+        (
+            motivo_id,
+            motivo
+        )
+        SELECT
+            motivo_id,
+            motivo
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                motivo_id,
+                motivo
+            FROM motivos_pool
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           ESTATUS POOL
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.estatus_pool';
+        
+        TRUNCATE TABLE bronze.estatus_pool;
+        
+        PRINT '>> Inserting Data Into: bronze.estatus_pool';
+        
+        INSERT INTO bronze.estatus_pool
+        (
+            estatus_id,
+            estatus
+        )
+        SELECT
+            estatus_id,
+            estatus
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                estatus_id,
+                estatus
+            FROM estatus_pool
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        PRINT'---------------------------------------'
+        PRINT 'Loading ERP Bronze Tables'
+        PRINT'---------------------------------------'
+        /* ==========================================================
            FACTURAS
         ========================================================== */
-
+        
         SET @start_time = GETDATE();
-
-        DECLARE @last_factura_fecha DATETIME
-
-        SELECT @last_factura_fecha = ISNULL(MAX(fecha_factura),'1900-01-01')
-        FROM bronze.facturas
-
-        PRINT '>> Loading bronze.facturas';
-
+        
+        PRINT '>> Loading Table: bronze.facturas';
+        
         INSERT INTO bronze.facturas
         (
             factura_id,
@@ -164,38 +263,31 @@ BEGIN
             fecha_factura,
             fecha_vencimiento,
             monto_factura
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                factura_id,
-                pedido_id,
-                estatus_id,
-                fecha_factura,
-                fecha_vencimiento,
-                monto_factura
-            FROM facturas
-        ') src
-        WHERE src.fecha_factura > @last_factura_fecha;
-
+        FROM ERP.dbo.facturas f
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM bronze.facturas b
+            WHERE b.factura_id = f.factura_id
+        );
+        
         SET @end_time = GETDATE();
-
-        PRINT '>> Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '----------------------------------------------------------';
+        
+        PRINT '>> Load Duration: ' 
+            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
+            + ' seconds';
+        
+        PRINT '---------------------------------------------------------------------------------------------';
 
 
 
         /* ==========================================================
            PAGOS
         ========================================================== */
-
+        
         SET @start_time = GETDATE();
-
-        DECLARE @last_pago_fecha DATETIME
-
-        SELECT @last_pago_fecha = ISNULL(MAX(fecha_pago),'1900-01-01')
-        FROM bronze.pagos
-
-        PRINT '>> Loading bronze.pagos';
-
+        
+        PRINT '>> Loading Table: bronze.pagos';
+        
         INSERT INTO bronze.pagos
         (
             pago_id,
@@ -210,34 +302,29 @@ BEGIN
             fecha_pago,
             monto_pago,
             metodo_pago
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                pago_id,
-                cliente_id,
-                fecha_pago,
-                monto_pago,
-                metodo_pago
-            FROM pagos
-        ') src
-        WHERE src.fecha_pago > @last_pago_fecha;
-
+        FROM ERP.dbo.pagos p
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM bronze.pagos b
+            WHERE b.pago_id = p.pago_id
+        );
+        
         SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' 
+            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
+            + ' seconds';
+        
+        PRINT '---------------------------------------------------------------------------------------------';
 
-        PRINT '>> Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '----------------------------------------------------------';
 
         /* ==========================================================
-        NOTAS DE CREDITO
+           NOTAS DE CREDITO
         ========================================================== */
         
         SET @start_time = GETDATE();
         
-        DECLARE @last_fecha_nota DATETIME
-        
-        SELECT @last_fecha_nota = ISNULL(MAX(fecha_nota),'1900-01-01')
-        FROM bronze.notas_credito
-        
-        PRINT '>> Loading bronze.notas_credito';
+        PRINT '>> Loading Table: bronze.notas_credito';
         
         INSERT INTO bronze.notas_credito
         (
@@ -253,23 +340,56 @@ BEGIN
             fecha_nota,
             monto_nota,
             motivo
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                nota_id,
-                factura_id,
-                fecha_nota,
-                monto_nota,
-                motivo
-            FROM notas_credito
-        ') src
-        WHERE src.fecha_nota > @last_fecha_nota;
+        FROM ERP.dbo.notas_credito n
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM bronze.notas_credito b
+            WHERE b.nota_id = n.nota_id
+        );
         
         SET @end_time = GETDATE();
         
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds';
+        PRINT '>> Load Duration: ' 
+            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
+            + ' seconds';
+        
         PRINT '---------------------------------------------------------------------------------------------';
 
 
+        /* ==========================================================
+           ESTATUS FACTURA
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.estatus_factura';
+        
+        TRUNCATE TABLE bronze.estatus_factura;
+        
+        PRINT '>> Inserting Data Into: bronze.estatus_factura';
+        
+        INSERT INTO bronze.estatus_factura
+        (
+            estatus_id,
+            estatus
+        )
+        SELECT
+            estatus_id,
+            estatus
+        FROM ERP.dbo.estatus_factura;
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' 
+            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
+            + ' seconds';
+        
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        PRINT'---------------------------------------'
+        PRINT 'Loading CRM Bronze Tables'
+        PRINT'---------------------------------------'
         /* ==========================================================
         CLIENTES
         ========================================================== */
@@ -579,137 +699,7 @@ BEGIN
         PRINT '---------------------------------------------------------------------------------------------';
 
 
-        /* ==========================================================
-           USUARIO LIBERACION
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.usuario_libero';
-        
-        TRUNCATE TABLE bronze.usuario_libero;
-        
-        PRINT '>> Inserting Data Into: bronze.usuario_libero';
-        
-        INSERT INTO bronze.usuario_libero
-        (
-            usuario_libero_id,
-            nombre
-        )
-        SELECT
-            usuario_libero_id,
-            nombre
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                usuario_libero_id,
-                nombre
-            FROM usuario_libero
-        ');
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
 
-
-
-        /* ==========================================================
-           MOTIVOS POOL
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.motivos_pool';
-        
-        TRUNCATE TABLE bronze.motivos_pool;
-        
-        PRINT '>> Inserting Data Into: bronze.motivos_pool';
-        
-        INSERT INTO bronze.motivos_pool
-        (
-            motivo_id,
-            motivo
-        )
-        SELECT
-            motivo_id,
-            motivo
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                motivo_id,
-                motivo
-            FROM motivos_pool
-        ');
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           ESTATUS POOL
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.estatus_pool';
-        
-        TRUNCATE TABLE bronze.estatus_pool;
-        
-        PRINT '>> Inserting Data Into: bronze.estatus_pool';
-        
-        INSERT INTO bronze.estatus_pool
-        (
-            estatus_id,
-            estatus
-        )
-        SELECT
-            estatus_id,
-            estatus
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                estatus_id,
-                estatus
-            FROM estatus_pool
-        ');
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           ESTATUS FACTURA
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.estatus_factura';
-        
-        TRUNCATE TABLE bronze.estatus_factura;
-        
-        PRINT '>> Inserting Data Into: bronze.estatus_factura';
-        
-        INSERT INTO bronze.estatus_factura
-        (
-            estatus_id,
-            estatus
-        )
-        SELECT
-            estatus_id,
-            estatus
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                estatus_id,
-                estatus
-            FROM estatus_factura
-        ');
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
 
 
         /* ==========================================================

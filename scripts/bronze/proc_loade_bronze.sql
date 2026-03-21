@@ -236,160 +236,245 @@ BEGIN
         PRINT '---------------------------------------------------------------------------------------------';
 
 
-        PRINT'---------------------------------------'
+        PRINT '---------------------------------------'
         PRINT 'Loading ERP Bronze Tables'
-        PRINT'---------------------------------------'
+        PRINT '---------------------------------------'
+        
         /* ==========================================================
-           FACTURAS
+           VBRK - BILLING DOCUMENT HEADER
         ========================================================== */
         
         SET @start_time = GETDATE();
         
-        PRINT '>> Loading Table: bronze.facturas';
+        PRINT '>> Loading Table: bronze.vbrk';
         
-        INSERT INTO bronze.facturas
+        INSERT INTO bronze.vbrk
         (
-            factura_id,
-            pedido_id,
-            estatus_id,
-            fecha_factura,
-            fecha_vencimiento,
-            monto_factura
+            VBELN,
+            FKDAT,
+            KUNAG,
+            NETWR,
+            WAERK,
+            FKSTK
         )
+        
         SELECT
-            factura_id,
-            pedido_id,
-            estatus_id,
-            fecha_factura,
-            fecha_vencimiento,
-            monto_factura
-        FROM ERP.dbo.facturas f
-        WHERE NOT EXISTS (
+            VBELN,
+            FKDAT,
+            KUNAG,
+            NETWR,
+            WAERK,
+            FKSTK
+        FROM ERP.dbo.VBRK s
+        
+        WHERE NOT EXISTS
+        (
             SELECT 1
-            FROM bronze.facturas b
-            WHERE b.factura_id = f.factura_id
+            FROM bronze.vbrk b
+            WHERE b.VBELN = s.VBELN
         );
         
         SET @end_time = GETDATE();
         
-        PRINT '>> Load Duration: ' 
-            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
-            + ' seconds';
+        PRINT '>> Load Duration: '
+        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
+        + ' seconds';
         
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-
+        PRINT '------------------------------------------------------------';
+        
+        
         /* ==========================================================
-           PAGOS
+           VBRP - BILLING DOCUMENT ITEMS
         ========================================================== */
         
         SET @start_time = GETDATE();
         
-        PRINT '>> Loading Table: bronze.pagos';
+        PRINT '>> Loading Table: bronze.vbrp';
         
-        INSERT INTO bronze.pagos
+        INSERT INTO bronze.vbrp
         (
-            pago_id,
-            cliente_id,
-            fecha_pago,
-            monto_pago,
-            metodo_pago
+            VBELN,
+            POSNR,
+            VGBEL,
+            NETWR
         )
+        
         SELECT
-            pago_id,
-            cliente_id,
-            fecha_pago,
-            monto_pago,
-            metodo_pago
-        FROM ERP.dbo.pagos p
-        WHERE NOT EXISTS (
+            VBELN,
+            POSNR,
+            VGBEL,
+            NETWR
+        FROM ERP.dbo.VBRP s
+        
+        WHERE NOT EXISTS
+        (
             SELECT 1
-            FROM bronze.pagos b
-            WHERE b.pago_id = p.pago_id
+            FROM bronze.vbrp b
+            WHERE b.VBELN = s.VBELN
+            AND b.POSNR = s.POSNR
         );
         
         SET @end_time = GETDATE();
         
-        PRINT '>> Load Duration: ' 
-            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
-            + ' seconds';
+        PRINT '>> Load Duration: '
+        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
+        + ' seconds';
         
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
+        PRINT '------------------------------------------------------------';
+        
+        
         /* ==========================================================
-           NOTAS DE CREDITO
+           BKPF - ACCOUNTING DOCUMENT HEADER
         ========================================================== */
         
         SET @start_time = GETDATE();
         
-        PRINT '>> Loading Table: bronze.notas_credito';
+        PRINT '>> Loading Table: bronze.bkpf';
         
-        INSERT INTO bronze.notas_credito
+        INSERT INTO bronze.bkpf
         (
-            nota_id,
-            factura_id,
-            fecha_nota,
-            monto_nota,
-            motivo
+            BELNR,
+            BUKRS,
+            GJAHR,
+            BLART,
+            BUDAT,
+            BLDAT
         )
+        
         SELECT
-            nota_id,
-            factura_id,
-            fecha_nota,
-            monto_nota,
-            motivo
-        FROM ERP.dbo.notas_credito n
-        WHERE NOT EXISTS (
+            BELNR,
+            BUKRS,
+            GJAHR,
+            BLART,
+            BUDAT,
+            BLDAT
+        FROM ERP.dbo.BKPF s
+        
+        WHERE NOT EXISTS
+        (
             SELECT 1
-            FROM bronze.notas_credito b
-            WHERE b.nota_id = n.nota_id
+            FROM bronze.bkpf b
+            WHERE b.BELNR = s.BELNR
+            AND b.GJAHR = s.GJAHR
         );
         
         SET @end_time = GETDATE();
         
-        PRINT '>> Load Duration: ' 
-            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
-            + ' seconds';
+        PRINT '>> Load Duration: '
+        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
+        + ' seconds';
         
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
+        PRINT '------------------------------------------------------------';
+        
+        
         /* ==========================================================
-           ESTATUS FACTURA
+           BSEG - ACCOUNTING DOCUMENT ITEMS
         ========================================================== */
         
         SET @start_time = GETDATE();
         
-        PRINT '>> Truncating Table: bronze.estatus_factura';
+        PRINT '>> Loading Table: bronze.bseg';
         
-        TRUNCATE TABLE bronze.estatus_factura;
-        
-        PRINT '>> Inserting Data Into: bronze.estatus_factura';
-        
-        INSERT INTO bronze.estatus_factura
+        INSERT INTO bronze.bseg
         (
-            estatus_id,
-            estatus
+            BELNR,
+            BUZEI,
+            BUKRS,
+            GJAHR,
+            KUNNR,
+            DMBTR,
+            WRBTR,
+            AUGBL,
+            AUGDT,
+            BUDAT
         )
+        
         SELECT
-            estatus_id,
-            estatus
-        FROM ERP.dbo.estatus_factura;
+            BELNR,
+            BUZEI,
+            BUKRS,
+            GJAHR,
+            KUNNR,
+            DMBTR,
+            WRBTR,
+            AUGBL,
+            AUGDT,
+            BUDAT
+        FROM ERP.dbo.BSEG s
+        
+        WHERE NOT EXISTS
+        (
+            SELECT 1
+            FROM bronze.bseg b
+            WHERE b.BELNR = s.BELNR
+            AND b.BUZEI = s.BUZEI
+            AND b.GJAHR = s.GJAHR
+        );
         
         SET @end_time = GETDATE();
         
-        PRINT '>> Load Duration: ' 
-            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
-            + ' seconds';
+        PRINT '>> Load Duration: '
+        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
+        + ' seconds';
         
-        PRINT '---------------------------------------------------------------------------------------------';
+        PRINT '------------------------------------------------------------';
+        
+        
+        /* ==========================================================
+           BSAD - CLEARED CUSTOMER ITEMS
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Loading Table: bronze.bsad';
+        
+        INSERT INTO bronze.bsad
+        (
+            BELNR,
+            BUZEI,
+            BUKRS,
+            GJAHR,
+            KUNNR,
+            AUGBL,
+            AUGDT,
+            DMBTR,
+            BUDAT
+        )
+        
+        SELECT
+            BELNR,
+            BUZEI,
+            BUKRS,
+            GJAHR,
+            KUNNR,
+            AUGBL,
+            AUGDT,
+            DMBTR,
+            BUDAT
+        FROM ERP.dbo.BSAD s
+        
+        WHERE NOT EXISTS
+        (
+            SELECT 1
+            FROM bronze.bsad b
+            WHERE b.BELNR = s.BELNR
+            AND b.BUZEI = s.BUZEI
+            AND b.GJAHR = s.GJAHR
+        );
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: '
+        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
+        + ' seconds';
+        
+        PRINT '------------------------------------------------------------';
 
 
         PRINT'---------------------------------------'
         PRINT 'Loading CRM Bronze Tables'
         PRINT'---------------------------------------'
+            
         /* ==========================================================
         CLIENTES
         ========================================================== */

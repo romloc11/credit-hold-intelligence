@@ -312,6 +312,393 @@ BEGIN
         PRINT '----------------------------------------------------------';
 
 
+        /* ==========================================================
+           PAQUETERIAS
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.paqueterias';
+        
+        TRUNCATE TABLE bronze.paqueterias;
+        
+        PRINT '>> Inserting Data Into: bronze.paqueterias';
+        
+        INSERT INTO bronze.paqueterias
+        (
+            paqueteria_id,
+            nombre_paqueteria,
+            tipo_servicio
+        )
+        SELECT
+            paqueteria_id,
+            nombre_paqueteria,
+            tipo_servicio
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                paqueteria_id,
+                nombre_paqueteria,
+                tipo_servicio
+            FROM paqueterias
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           RUTAS
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.rutas';
+        
+        TRUNCATE TABLE bronze.rutas;
+        
+        PRINT '>> Inserting Data Into: bronze.rutas';
+        
+        INSERT INTO bronze.rutas
+        (
+            ruta_id,
+            ruta,
+            zona
+        )
+        SELECT
+            ruta_id,
+            ruta,
+            zona
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                ruta_id,
+                ruta,
+                zona
+            FROM rutas
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           VENDEDORES
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.vendedores';
+        
+        TRUNCATE TABLE bronze.vendedores;
+        
+        PRINT '>> Inserting Data Into: bronze.vendedores';
+        
+        INSERT INTO bronze.vendedores
+        (
+            vendedor_id,
+            ruta_id,
+            nombre,
+            contacto
+        )
+        SELECT
+            vendedor_id,
+            ruta_id,
+            nombre,
+            contacto
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                vendedor_id,
+                ruta_id,
+                nombre,
+                contacto
+            FROM vendedores
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+        
+        /* ==========================================================
+           GERENTE VENTA
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.gerente_venta';
+        
+        TRUNCATE TABLE bronze.gerente_venta;
+        
+        PRINT '>> Inserting Data Into: bronze.gerente_venta';
+        
+        INSERT INTO bronze.gerente_venta
+        (
+            gerente_venta_id,
+            nombre,
+            contacto
+        )
+        SELECT
+            gerente_venta_id,
+            nombre,
+            contacto
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                gerente_venta_id,
+                nombre,
+                contacto
+            FROM gerente_venta
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+        
+        /* ==========================================================
+           EJECUTIVO CREDITO
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.ejecutivo_credito';
+        
+        TRUNCATE TABLE bronze.ejecutivo_credito;
+        
+        PRINT '>> Inserting Data Into: bronze.ejecutivo_credito';
+        
+        INSERT INTO bronze.ejecutivo_credito
+        (
+            ejecutivo_credito_id,
+            nombre,
+            contacto
+        )
+        SELECT
+            ejecutivo_credito_id,
+            nombre,
+            contacto
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                ejecutivo_credito_id,
+                nombre,
+                contacto
+            FROM ejecutivo_credito
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           TELEMARKETING
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.telemarketing';
+        
+        TRUNCATE TABLE bronze.telemarketing;
+        
+        PRINT '>> Inserting Data Into: bronze.telemarketing';
+        
+        INSERT INTO bronze.telemarketing
+        (
+            telemarketing_id,
+            nombre,
+            contacto
+        )
+        SELECT
+            telemarketing_id,
+            nombre,
+            contacto
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                telemarketing_id,
+                nombre,
+                contacto
+            FROM telemarketing
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           GERENTE REGIONAL
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.gerente_regional';
+        
+        TRUNCATE TABLE bronze.gerente_regional;
+        
+        PRINT '>> Inserting Data Into: bronze.gerente_regional';
+        
+        INSERT INTO bronze.gerente_regional
+        (
+            gerente_regional_id,
+            nombre,
+            contacto
+        )
+        SELECT
+            gerente_regional_id,
+            nombre,
+            contacto
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                gerente_regional_id,
+                nombre,
+                contacto
+            FROM gerente_regional
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           USUARIO LIBERACION
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.usuario_libero';
+        
+        TRUNCATE TABLE bronze.usuario_libero;
+        
+        PRINT '>> Inserting Data Into: bronze.usuario_libero';
+        
+        INSERT INTO bronze.usuario_libero
+        (
+            usuario_libero_id,
+            nombre
+        )
+        SELECT
+            usuario_libero_id,
+            nombre
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                usuario_libero_id,
+                nombre
+            FROM usuario_libero
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+
+        /* ==========================================================
+           MOTIVOS POOL
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.motivos_pool';
+        
+        TRUNCATE TABLE bronze.motivos_pool;
+        
+        PRINT '>> Inserting Data Into: bronze.motivos_pool';
+        
+        INSERT INTO bronze.motivos_pool
+        (
+            motivo_id,
+            motivo
+        )
+        SELECT
+            motivo_id,
+            motivo
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                motivo_id,
+                motivo
+            FROM motivos_pool
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           ESTATUS POOL
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.estatus_pool';
+        
+        TRUNCATE TABLE bronze.estatus_pool;
+        
+        PRINT '>> Inserting Data Into: bronze.estatus_pool';
+        
+        INSERT INTO bronze.estatus_pool
+        (
+            estatus_id,
+            estatus
+        )
+        SELECT
+            estatus_id,
+            estatus
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                estatus_id,
+                estatus
+            FROM estatus_pool
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
+
+        /* ==========================================================
+           ESTATUS FACTURA
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        PRINT '>> Truncating Table: bronze.estatus_factura';
+        
+        TRUNCATE TABLE bronze.estatus_factura;
+        
+        PRINT '>> Inserting Data Into: bronze.estatus_factura';
+        
+        INSERT INTO bronze.estatus_factura
+        (
+            estatus_id,
+            estatus
+        )
+        SELECT
+            estatus_id,
+            estatus
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                estatus_id,
+                estatus
+            FROM estatus_factura
+        ');
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
 
         /* ==========================================================
            FIN DEL BATCH

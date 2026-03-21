@@ -21,742 +21,623 @@ CREATE OR ALTER PROCEDURE bronze.load_bronze
 AS
 BEGIN
 
-    DECLARE @start_time DATETIME,
-            @end_time DATETIME,
-            @batch_start_time DATETIME,
-            @batch_end_time DATETIME;
+DECLARE @start_time DATETIME,
+        @end_time DATETIME,
+        @batch_start_time DATETIME,
+        @batch_end_time DATETIME;
 
-    BEGIN TRY
+BEGIN TRY
 
-        SET @batch_start_time = GETDATE();
+SET @batch_start_time = GETDATE();
 
-    PRINT '====================================';
-    PRINT 'Loading Bronze Layer';
-    PRINT '====================================';
+PRINT '====================================';
+PRINT 'Loading Bronze Layer';
+PRINT '====================================';
 
-        PRINT'---------------------------------------'
-        PRINT 'Loading CIOSACOM Bronze Tables'
-        PRINT'---------------------------------------'
-        /* ==========================================================
-           PEDIDOS
-        ========================================================== */
+PRINT '---------------------------------------';
+PRINT 'Loading CIOSACOM Bronze Tables';
+PRINT '---------------------------------------';
 
-        SET @start_time = GETDATE();
 
-        DECLARE @last_pedido_fecha DATETIME
+/* ==========================================================
+   PEDIDOS
+========================================================== */
 
-        SELECT @last_pedido_fecha = ISNULL(MAX(creado_en),'1900-01-01')
-        FROM bronze.pedidos
+SET @start_time = GETDATE();
 
-        PRINT '>> Loading bronze.pedidos';
+PRINT '>> Loading bronze.ciosacom_pedidos';
 
-        INSERT INTO bronze.pedidos
-        (
-            pedido_id,
-            cliente_id,
-            paqueteria_id,
-            creado_en,
-            valor_pedido
-        )
+MERGE bronze.ciosacom_pedidos AS tgt
+USING
+(
+    SELECT
+        pedido_id,
+        cliente_id,
+        paqueteria_id,
+        creado_en,
+        valor_pedido
+    FROM OPENQUERY(CiosaCOM,'
         SELECT
             pedido_id,
             cliente_id,
             paqueteria_id,
             creado_en,
             valor_pedido
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                pedido_id,
-                cliente_id,
-                paqueteria_id,
-                creado_en,
-                valor_pedido
-            FROM pedidos
-        ') src
-        WHERE src.creado_en > @last_pedido_fecha;
+        FROM pedidos
+    ')
+) src
+ON tgt.pedido_id = src.pedido_id
 
-        SET @end_time = GETDATE();
+WHEN MATCHED AND
+(
+    tgt.cliente_id <> src.cliente_id OR
+    tgt.paqueteria_id <> src.paqueteria_id OR
+    tgt.valor_pedido <> src.valor_pedido
+)
 
-        PRINT '>> Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '----------------------------------------------------------';
+THEN UPDATE SET
+    cliente_id = src.cliente_id,
+    paqueteria_id = src.paqueteria_id,
+    creado_en = src.creado_en,
+    valor_pedido = src.valor_pedido
 
+WHEN NOT MATCHED THEN
+INSERT
+(
+    pedido_id,
+    cliente_id,
+    paqueteria_id,
+    creado_en,
+    valor_pedido
+)
+VALUES
+(
+    src.pedido_id,
+    src.cliente_id,
+    src.paqueteria_id,
+    src.creado_en,
+    src.valor_pedido
+);
 
-        /* ==========================================================
-           PEDIDOS POOL
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        DECLARE @last_fecha_pool DATETIME
-        
-        SELECT @last_fecha_pool = ISNULL(MAX(fecha_resolucion),'1900-01-01')
-        FROM bronze.pedidos_pool
-        
-        PRINT '>> Loading bronze.pedidos_pool';
-        
-        INSERT INTO bronze.pedidos_pool
-        (
-            pool_id,
-            pedido_id,
-            estatus_id,
-            motivo_id,
-            usuario_libero_id,
-            fecha_resolucion,
-            valor_pedido,
-            horas_en_pool,
-            minutos_en_pool
-        )
-        SELECT
-            pool_id,
-            pedido_id,
-            estatus_id,
-            motivo_id,
-            usuario_libero_id,
-            fecha_resolucion,
-            valor_pedido,
-            horas_en_pool,
-            minutos_en_pool
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                pool_id,
-                pedido_id,
-                estatus_id,
-                motivo_id,
-                usuario_libero_id,
-                fecha_resolucion,
-                valor_pedido,
-                horas_en_pool,
-                minutos_en_pool
-            FROM pedidos_pool
-        ') src
-        WHERE src.fecha_resolucion > @last_fecha_pool;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           USUARIO LIBERACION
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.usuario_libero';
-        
-        TRUNCATE TABLE bronze.usuario_libero;
-        
-        PRINT '>> Inserting Data Into: bronze.usuario_libero';
-        
-        INSERT INTO bronze.usuario_libero
-        (
-            usuario_libero_id,
-            nombre
-        )
-        SELECT
-            usuario_libero_id,
-            nombre
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                usuario_libero_id,
-                nombre
-            FROM usuario_libero
-        ');
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           MOTIVOS POOL
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.motivos_pool';
-        
-        TRUNCATE TABLE bronze.motivos_pool;
-        
-        PRINT '>> Inserting Data Into: bronze.motivos_pool';
-        
-        INSERT INTO bronze.motivos_pool
-        (
-            motivo_id,
-            motivo
-        )
-        SELECT
-            motivo_id,
-            motivo
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                motivo_id,
-                motivo
-            FROM motivos_pool
-        ');
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           ESTATUS POOL
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.estatus_pool';
-        
-        TRUNCATE TABLE bronze.estatus_pool;
-        
-        PRINT '>> Inserting Data Into: bronze.estatus_pool';
-        
-        INSERT INTO bronze.estatus_pool
-        (
-            estatus_id,
-            estatus
-        )
-        SELECT
-            estatus_id,
-            estatus
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                estatus_id,
-                estatus
-            FROM estatus_pool
-        ');
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        PRINT '---------------------------------------'
-        PRINT 'Loading ERP Bronze Tables'
-        PRINT '---------------------------------------'
-        
-        /* ==========================================================
-           VBRK - BILLING DOCUMENT HEADER
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Loading Table: bronze.vbrk';
-        
-        INSERT INTO bronze.vbrk
-        (
-            VBELN,
-            FKDAT,
-            KUNAG,
-            NETWR,
-            WAERK,
-            FKSTK
-        )
-        
-        SELECT
-            VBELN,
-            FKDAT,
-            KUNAG,
-            NETWR,
-            WAERK,
-            FKSTK
-        FROM ERP.dbo.VBRK s
-        
-        WHERE NOT EXISTS
-        (
-            SELECT 1
-            FROM bronze.vbrk b
-            WHERE b.VBELN = s.VBELN
-        );
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: '
-        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
-        + ' seconds';
-        
-        PRINT '------------------------------------------------------------';
-        
-        
-        /* ==========================================================
-           VBRP - BILLING DOCUMENT ITEMS
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Loading Table: bronze.vbrp';
-        
-        INSERT INTO bronze.vbrp
-        (
-            VBELN,
-            POSNR,
-            VGBEL,
-            NETWR
-        )
-        
-        SELECT
-            VBELN,
-            POSNR,
-            VGBEL,
-            NETWR
-        FROM ERP.dbo.VBRP s
-        
-        WHERE NOT EXISTS
-        (
-            SELECT 1
-            FROM bronze.vbrp b
-            WHERE b.VBELN = s.VBELN
-            AND b.POSNR = s.POSNR
-        );
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: '
-        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
-        + ' seconds';
-        
-        PRINT '------------------------------------------------------------';
-        
-        
-        /* ==========================================================
-           BKPF - ACCOUNTING DOCUMENT HEADER
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Loading Table: bronze.bkpf';
-        
-        INSERT INTO bronze.bkpf
-        (
-            BELNR,
-            BUKRS,
-            GJAHR,
-            BLART,
-            BUDAT,
-            BLDAT
-        )
-        
-        SELECT
-            BELNR,
-            BUKRS,
-            GJAHR,
-            BLART,
-            BUDAT,
-            BLDAT
-        FROM ERP.dbo.BKPF s
-        
-        WHERE NOT EXISTS
-        (
-            SELECT 1
-            FROM bronze.bkpf b
-            WHERE b.BELNR = s.BELNR
-            AND b.GJAHR = s.GJAHR
-        );
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: '
-        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
-        + ' seconds';
-        
-        PRINT '------------------------------------------------------------';
-        
-        
-        /* ==========================================================
-           BSEG - ACCOUNTING DOCUMENT ITEMS
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Loading Table: bronze.bseg';
-        
-        INSERT INTO bronze.bseg
-        (
-            BELNR,
-            BUZEI,
-            BUKRS,
-            GJAHR,
-            KUNNR,
-            DMBTR,
-            WRBTR,
-            AUGBL,
-            AUGDT,
-            BUDAT
-        )
-        
-        SELECT
-            BELNR,
-            BUZEI,
-            BUKRS,
-            GJAHR,
-            KUNNR,
-            DMBTR,
-            WRBTR,
-            AUGBL,
-            AUGDT,
-            BUDAT
-        FROM ERP.dbo.BSEG s
-        
-        WHERE NOT EXISTS
-        (
-            SELECT 1
-            FROM bronze.bseg b
-            WHERE b.BELNR = s.BELNR
-            AND b.BUZEI = s.BUZEI
-            AND b.GJAHR = s.GJAHR
-        );
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: '
-        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
-        + ' seconds';
-        
-        PRINT '------------------------------------------------------------';
-        
-        
-        /* ==========================================================
-           BSAD - CLEARED CUSTOMER ITEMS
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Loading Table: bronze.bsad';
-        
-        INSERT INTO bronze.bsad
-        (
-            BELNR,
-            BUZEI,
-            BUKRS,
-            GJAHR,
-            KUNNR,
-            AUGBL,
-            AUGDT,
-            DMBTR,
-            BUDAT
-        )
-        
-        SELECT
-            BELNR,
-            BUZEI,
-            BUKRS,
-            GJAHR,
-            KUNNR,
-            AUGBL,
-            AUGDT,
-            DMBTR,
-            BUDAT
-        FROM ERP.dbo.BSAD s
-        
-        WHERE NOT EXISTS
-        (
-            SELECT 1
-            FROM bronze.bsad b
-            WHERE b.BELNR = s.BELNR
-            AND b.BUZEI = s.BUZEI
-            AND b.GJAHR = s.GJAHR
-        );
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: '
-        + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
-        + ' seconds';
-        
-        PRINT '------------------------------------------------------------';
-
-
-        PRINT'---------------------------------------'
-        PRINT 'Loading CRM Bronze Tables'
-        PRINT'---------------------------------------'
-            
-        /* ==========================================================
-        CLIENTES
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.clientes';
-        
-        TRUNCATE TABLE bronze.clientes;
-        
-        PRINT '>> Inserting Data Into: bronze.clientes';
-        
-        INSERT INTO bronze.clientes
-        (
-            cliente_id,
-            nombre,
-            rfc,
-            contacto,
-            domicilio,
-            limite_credito,
-            plazo_dias,
-            fecha_modificacion
-        )
-        SELECT
-            cliente_id,
-            nombre,
-            rfc,
-            contacto,
-            domicilio,
-            limite_credito,
-            plazo_dias,
-            fecha_modificacion
-        FROM CRM.dbo.clientes;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' 
-            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
-            + ' seconds';
-        
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           PAQUETERIAS
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.paqueterias';
-        
-        TRUNCATE TABLE bronze.paqueterias;
-        
-        PRINT '>> Inserting Data Into: bronze.paqueterias';
-        
-        INSERT INTO bronze.paqueterias
-        (
-            paqueteria_id,
-            nombre_paqueteria,
-            tipo_servicio
-        )
-        SELECT
-            paqueteria_id,
-            nombre_paqueteria,
-            tipo_servicio
-        FROM CRM.dbo.paqueterias;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           RUTAS
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.rutas';
-        
-        TRUNCATE TABLE bronze.rutas;
-        
-        PRINT '>> Inserting Data Into: bronze.rutas';
-        
-        INSERT INTO bronze.rutas
-        (
-            ruta_id,
-            ruta,
-            zona
-        )
-        SELECT
-            ruta_id,
-            ruta,
-            zona
-        FROM CRM.dbo.rutas;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           VENDEDORES
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.vendedores';
-        
-        TRUNCATE TABLE bronze.vendedores;
-        
-        PRINT '>> Inserting Data Into: bronze.vendedores';
-        
-        INSERT INTO bronze.vendedores
-        (
-            vendedor_id,
-            ruta_id,
-            nombre,
-            contacto
-        )
-        SELECT
-            vendedor_id,
-            ruta_id,
-            nombre,
-            contacto
-        FROM CRM.dbo.vendedores;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-        
-        /* ==========================================================
-           GERENTE VENTA
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.gerente_venta';
-        
-        TRUNCATE TABLE bronze.gerente_venta;
-        
-        PRINT '>> Inserting Data Into: bronze.gerente_venta';
-        
-        INSERT INTO bronze.gerente_venta
-        (
-            gerente_venta_id,
-            nombre,
-            contacto
-        )
-        SELECT
-            gerente_venta_id,
-            nombre,
-            contacto
-        FROM CRM.dbo.gerentes_de_venta;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-        
-        /* ==========================================================
-           EJECUTIVO CREDITO
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.ejecutivo_credito';
-        
-        TRUNCATE TABLE bronze.ejecutivo_credito;
-        
-        PRINT '>> Inserting Data Into: bronze.ejecutivo_credito';
-        
-        INSERT INTO bronze.ejecutivo_credito
-        (
-            ejecutivo_credito_id,
-            nombre,
-            contacto
-        )
-        SELECT
-            ejecutivo_credito_id,
-            nombre,
-            contacto
-        FROM CRM.dbo.ejecutivos_de_credito;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           TELEMARKETING
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.telemarketing';
-        
-        TRUNCATE TABLE bronze.telemarketing;
-        
-        PRINT '>> Inserting Data Into: bronze.telemarketing';
-        
-        INSERT INTO bronze.telemarketing
-        (
-            telemarketing_id,
-            nombre,
-            contacto
-        )
-        SELECT
-            telemarketing_id,
-            nombre,
-            contacto
-        FROM CRM.dbo.telemarketing;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-        /* ==========================================================
-           GERENTE REGIONAL
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        PRINT '>> Truncating Table: bronze.gerente_regional';
-        
-        TRUNCATE TABLE bronze.gerente_regional;
-        
-        PRINT '>> Inserting Data Into: bronze.gerente_regional';
-        
-        INSERT INTO bronze.gerente_regional
-        (
-            gerente_regional_id,
-            nombre,
-            contacto
-        )
-        SELECT
-            gerente_regional_id,
-            nombre,
-            contacto
-        FROM CRM.dbo.gerente_regional;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
+SET @end_time = GETDATE();
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
 
 
 
+/* ==========================================================
+   PEDIDOS POOL
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.ciosacom_pedidos_pool';
+
+MERGE bronze.ciosacom_pedidos_pool tgt
+USING
+(
+SELECT
+    pool_id,
+    pedido_id,
+    estatus_id,
+    motivo_id,
+    usuario_libero_id,
+    fecha_resolucion,
+    valor_pedido,
+    horas_en_pool,
+    minutos_en_pool
+FROM OPENQUERY(CiosaCOM,'
+    SELECT
+        pool_id,
+        pedido_id,
+        estatus_id,
+        motivo_id,
+        usuario_libero_id,
+        fecha_resolucion,
+        valor_pedido,
+        horas_en_pool,
+        minutos_en_pool
+    FROM pedidos_pool
+')
+) src
+
+ON tgt.pool_id = src.pool_id
+
+WHEN MATCHED THEN UPDATE SET
+
+    pedido_id = src.pedido_id,
+    estatus_id = src.estatus_id,
+    motivo_id = src.motivo_id,
+    usuario_libero_id = src.usuario_libero_id,
+    fecha_resolucion = src.fecha_resolucion,
+    valor_pedido = src.valor_pedido,
+    horas_en_pool = src.horas_en_pool,
+    minutos_en_pool = src.minutos_en_pool
+
+WHEN NOT MATCHED THEN
+INSERT
+(
+    pool_id,
+    pedido_id,
+    estatus_id,
+    motivo_id,
+    usuario_libero_id,
+    fecha_resolucion,
+    valor_pedido,
+    horas_en_pool,
+    minutos_en_pool
+)
+VALUES
+(
+    src.pool_id,
+    src.pedido_id,
+    src.estatus_id,
+    src.motivo_id,
+    src.usuario_libero_id,
+    src.fecha_resolucion,
+    src.valor_pedido,
+    src.horas_en_pool,
+    src.minutos_en_pool
+);
+
+SET @end_time = GETDATE();
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
 
 
-        /* ==========================================================
-           FIN DEL BATCH
-        ========================================================== */
+/* ==========================================================
+   USUARIO LIBERACIÓN
+========================================================== */
 
-        SET @batch_end_time = GETDATE();
+SET @start_time = GETDATE();
 
-        PRINT '====================================';
-        PRINT 'Bronze Load Completed';
-        PRINT 'Total Duration: ' + CAST(DATEDIFF(second,@batch_start_time,@batch_end_time) AS NVARCHAR) + ' seconds';
-        PRINT '====================================';
+PRINT '>> Loading bronze.ciosacom_usuario_libero';
 
-    END TRY
+TRUNCATE TABLE bronze.ciosacom_usuario_libero;
 
-    BEGIN CATCH
+INSERT INTO bronze.ciosacom_usuario_libero
+(
+    usuario_libero_id,
+    nombre
+)
+SELECT
+    usuario_libero_id,
+    nombre
+FROM OPENQUERY(CiosaCOM,'
+    SELECT
+        usuario_libero_id,
+        nombre
+    FROM usuario_libero
+');
 
-        PRINT '====================================';
-        PRINT 'ERROR DURING BRONZE LOAD';
-        PRINT 'Message: ' + ERROR_MESSAGE();
-        PRINT 'Number: ' + CAST(ERROR_NUMBER() AS NVARCHAR);
-        PRINT 'State: ' + CAST(ERROR_STATE() AS NVARCHAR);
-        PRINT '====================================';
+SET @end_time = GETDATE();
 
-        THROW;
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
 
-    END CATCH
+
+/* ==========================================================
+   MOTIVOS POOL
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.ciosacom_motivos_pool';
+
+TRUNCATE TABLE bronze.ciosacom_motivos_pool;
+
+INSERT INTO bronze.ciosacom_motivos_pool
+(
+    motivo_id,
+    motivo
+)
+SELECT
+    motivo_id,
+    motivo
+FROM OPENQUERY(CiosaCOM,'
+    SELECT
+        motivo_id,
+        motivo
+    FROM motivos_pool
+');
+
+SET @end_time = GETDATE();
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
+
+/* ==========================================================
+   ESTATUS POOL
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.ciosacom_estatus_pool';
+
+TRUNCATE TABLE bronze.ciosacom_estatus_pool;
+
+INSERT INTO bronze.ciosacom_estatus_pool
+(
+    estatus_id,
+    estatus
+)
+SELECT
+    estatus_id,
+    estatus
+FROM OPENQUERY(CiosaCOM,'
+    SELECT
+        estatus_id,
+        estatus
+    FROM estatus_pool
+');
+
+SET @end_time = GETDATE();
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
+
+PRINT '---------------------------------------';
+PRINT 'Loading ERP Bronze Tables';
+PRINT '---------------------------------------';
+
+
+/* ==========================================================
+   VBRK
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.erp_vbrk';
+
+MERGE bronze.erp_vbrk tgt
+USING
+(
+SELECT
+    VBELN,
+    FKDAT,
+    KUNAG,
+    NETWR,
+    WAERK,
+    FKSTK
+FROM ERP.dbo.VBRK
+) src
+
+ON tgt.VBELN = src.VBELN
+
+WHEN MATCHED THEN UPDATE SET
+
+    FKDAT = src.FKDAT,
+    KUNAG = src.KUNAG,
+    NETWR = src.NETWR,
+    WAERK = src.WAERK,
+    FKSTK = src.FKSTK
+
+WHEN NOT MATCHED THEN
+INSERT
+(
+    VBELN,
+    FKDAT,
+    KUNAG,
+    NETWR,
+    WAERK,
+    FKSTK
+)
+VALUES
+(
+    src.VBELN,
+    src.FKDAT,
+    src.KUNAG,
+    src.NETWR,
+    src.WAERK,
+    src.FKSTK
+);
+
+SET @end_time = GETDATE();
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
+
+
+/* ==========================================================
+   VBRP
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.erp_vbrp';
+
+MERGE bronze.erp_vbrp tgt
+USING
+(
+SELECT
+    VBELN,
+    POSNR,
+    VGBEL,
+    NETWR
+FROM ERP.dbo.VBRP
+) src
+
+ON tgt.VBELN = src.VBELN
+AND tgt.POSNR = src.POSNR
+
+WHEN MATCHED THEN UPDATE SET
+
+    VGBEL = src.VGBEL,
+    NETWR = src.NETWR
+
+WHEN NOT MATCHED THEN
+INSERT
+(
+    VBELN,
+    POSNR,
+    VGBEL,
+    NETWR
+)
+VALUES
+(
+    src.VBELN,
+    src.POSNR,
+    src.VGBEL,
+    src.NETWR
+);
+
+SET @end_time = GETDATE();
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
+
+/* ==========================================================
+   BKPF
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.erp_bkpf';
+
+MERGE bronze.erp_bkpf tgt
+USING
+(
+SELECT
+    BELNR,
+    BUKRS,
+    GJAHR,
+    BLART,
+    BUDAT,
+    BLDAT
+FROM ERP.dbo.BKPF
+) src
+
+ON tgt.BELNR = src.BELNR
+AND tgt.BUKRS = src.BUKRS
+AND tgt.GJAHR = src.GJAHR
+
+WHEN MATCHED THEN
+UPDATE SET
+
+    BLART = src.BLART,
+    BUDAT = src.BUDAT,
+    BLDAT = src.BLDAT
+
+WHEN NOT MATCHED THEN
+INSERT
+(
+    BELNR,
+    BUKRS,
+    GJAHR,
+    BLART,
+    BUDAT,
+    BLDAT
+)
+VALUES
+(
+    src.BELNR,
+    src.BUKRS,
+    src.GJAHR,
+    src.BLART,
+    src.BUDAT,
+    src.BLDAT
+);
+
+SET @end_time = GETDATE();
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
+
+/* ==========================================================
+   BSEG
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.erp_bseg';
+
+MERGE bronze.erp_bseg tgt
+USING
+(
+SELECT
+    BELNR,
+    BUZEI,
+    BUKRS,
+    GJAHR,
+    KUNNR,
+    DMBTR,
+    WRBTR,
+    AUGBL,
+    AUGDT,
+    BUDAT
+FROM ERP.dbo.BSEG
+) src
+
+ON tgt.BELNR = src.BELNR
+AND tgt.BUZEI = src.BUZEI
+AND tgt.GJAHR = src.GJAHR
+AND tgt.BUKRS = src.BUKRS
+
+WHEN MATCHED THEN UPDATE SET
+
+    KUNNR = src.KUNNR,
+    DMBTR = src.DMBTR,
+    WRBTR = src.WRBTR,
+    AUGBL = src.AUGBL,
+    AUGDT = src.AUGDT,
+    BUDAT = src.BUDAT
+
+WHEN NOT MATCHED THEN
+INSERT
+(
+    BELNR,
+    BUZEI,
+    BUKRS,
+    GJAHR,
+    KUNNR,
+    DMBTR,
+    WRBTR,
+    AUGBL,
+    AUGDT,
+    BUDAT
+)
+VALUES
+(
+    src.BELNR,
+    src.BUZEI,
+    src.BUKRS,
+    src.GJAHR,
+    src.KUNNR,
+    src.DMBTR,
+    src.WRBTR,
+    src.AUGBL,
+    src.AUGDT,
+    src.BUDAT
+);
+
+SET @end_time = GETDATE();
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
+
+/* ==========================================================
+   BSAD
+========================================================== */
+
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.erp_bsad';
+
+MERGE bronze.erp_bsad tgt
+USING
+(
+SELECT
+    BELNR,
+    BUZEI,
+    BUKRS,
+    GJAHR,
+    KUNNR,
+    AUGBL,
+    AUGDT,
+    DMBTR,
+    BUDAT
+FROM ERP.dbo.BSAD
+) src
+
+ON tgt.BELNR = src.BELNR
+AND tgt.BUZEI = src.BUZEI
+AND tgt.BUKRS = src.BUKRS
+AND tgt.GJAHR = src.GJAHR
+
+WHEN MATCHED THEN
+UPDATE SET
+
+    KUNNR = src.KUNNR,
+    AUGBL = src.AUGBL,
+    AUGDT = src.AUGDT,
+    DMBTR = src.DMBTR,
+    BUDAT = src.BUDAT
+
+WHEN NOT MATCHED THEN
+INSERT
+(
+    BELNR,
+    BUZEI,
+    BUKRS,
+    GJAHR,
+    KUNNR,
+    AUGBL,
+    AUGDT,
+    DMBTR,
+    BUDAT
+)
+VALUES
+(
+    src.BELNR,
+    src.BUZEI,
+    src.BUKRS,
+    src.GJAHR,
+    src.KUNNR,
+    src.AUGBL,
+    src.AUGDT,
+    src.DMBTR,
+    src.BUDAT
+);
+
+SET @end_time = GETDATE();
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
+
+PRINT '---------------------------------------';
+PRINT 'Loading ODOO Bronze Tables';
+PRINT '---------------------------------------';
+
+
+/* ==========================================================
+   ODOO RES PARTNER
+========================================================== */
+
+TRUNCATE TABLE bronze.odoo_res_partner;
+
+INSERT INTO bronze.odoo_res_partner
+SELECT *
+FROM ODOO.dbo.res_partner;
+
+
+/* ==========================================================
+   ODOO USERS
+========================================================== */
+
+TRUNCATE TABLE bronze.odoo_res_users;
+
+INSERT INTO bronze.odoo_res_users
+SELECT *
+FROM ODOO.dbo.res_users;
+
+
+/* ==========================================================
+   ODOO EMPLOYEE
+========================================================== */
+
+TRUNCATE TABLE bronze.odoo_hr_employee;
+
+INSERT INTO bronze.odoo_hr_employee
+SELECT *
+FROM ODOO.dbo.hr_employee;
+
+
+
+SET @batch_end_time = GETDATE();
+
+PRINT '====================================';
+PRINT 'Bronze Load Completed';
+PRINT 'Total Duration: '
++ CAST(DATEDIFF(second,@batch_start_time,@batch_end_time) AS NVARCHAR)
++ ' seconds';
+PRINT '====================================';
+
+
+END TRY
+
+BEGIN CATCH
+
+PRINT '====================================';
+PRINT 'ERROR DURING BRONZE LOAD';
+PRINT ERROR_MESSAGE();
+PRINT '====================================';
+
+THROW;
+
+END CATCH
 
 END

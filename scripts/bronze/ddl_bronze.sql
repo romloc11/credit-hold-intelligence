@@ -108,6 +108,33 @@ CREATE TABLE bronze.notas_credito (
 GO
 
 
+-- =============================================================================
+-- Create Table: bronze.aplicaciones_pago
+-- =============================================================================
+IF OBJECT_ID('bronze.aplicaciones_pago', 'U') IS NOT NULL
+    DROP TABLE bronze.aplicaciones_pago;
+GO
+    
+CREATE TABLE bronze.aplicaciones_pago (
+
+    documento_contable VARCHAR(20),
+    posicion_documento INT,
+
+    cliente_id VARCHAR(20),
+
+    factura_id VARCHAR(20),
+
+    pago_id VARCHAR(20),
+
+    clearing_doc VARCHAR(20),   -- AUGBL
+    clearing_date DATE,         -- AUGDT
+
+    monto DECIMAL(18,2),
+
+    fecha_documento DATE
+);
+GO
+
 -- =============================================
 -- Clientes
 -- =============================================

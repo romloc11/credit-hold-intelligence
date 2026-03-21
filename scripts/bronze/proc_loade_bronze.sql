@@ -273,43 +273,57 @@ BEGIN
 
 
         /* ==========================================================
-           CLIENTES (FULL LOAD - DIMENSION)
+        CLIENTES
         ========================================================== */
-
+        
         SET @start_time = GETDATE();
-
-        PRINT '>> Refreshing bronze.clientes';
-
+        
+        PRINT '>> Truncating Table: bronze.clientes';
+        
         TRUNCATE TABLE bronze.clientes;
-
+        
+        PRINT '>> Inserting Data Into: bronze.clientes';
+        
         INSERT INTO bronze.clientes
         (
             cliente_id,
             nombre,
             rfc,
             contacto,
-            domicilio
+            domicilio,
+            limite_credito,
+            plazo_dias,
+            fecha_modificacion
         )
         SELECT
             cliente_id,
             nombre,
             rfc,
             contacto,
-            domicilio
+            domicilio,
+            limite_credito,
+            plazo_dias,
+            fecha_modificacion
         FROM OPENQUERY(CiosaCOM, '
             SELECT
                 cliente_id,
                 nombre,
                 rfc,
                 contacto,
-                domicilio
+                domicilio,
+                limite_credito,
+                plazo_dias,
+                fecha_modificacion
             FROM clientes
         ');
-
+        
         SET @end_time = GETDATE();
-
-        PRINT '>> Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
-        PRINT '----------------------------------------------------------';
+        
+        PRINT '>> Load Duration: ' 
+            + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR)
+            + ' seconds';
+        
+        PRINT '---------------------------------------------------------------------------------------------';
 
 
         /* ==========================================================

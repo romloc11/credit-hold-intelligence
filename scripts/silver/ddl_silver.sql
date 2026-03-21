@@ -13,326 +13,245 @@ Script Purpose:
 ===============================================================================
 */
 
--- =============================================
--- Pedidos
--- =============================================
+/* ==========================================================
+   CIOSACOM
+========================================================== */
 
-IF OBJECT_ID('silver.pedidos', 'U') IS NOT NULL
-    DROP TABLE silver.pedidos;
+IF OBJECT_ID('silver.ciosacom_pedidos','U') IS NOT NULL
+DROP TABLE silver.ciosacom_pedidos;
 GO
 
-CREATE TABLE silver.pedidos (
-    pedido_id        INT,
-    cliente_id       NVARCHAR(50),
-    paqueteria_id    NVARCHAR(50),
-    creado_en        DATETIME,
-    valor_pedido     DECIMAL(18,2),
-    
-    ingestion_date DATETIME DEFAULT GETDATE()
+CREATE TABLE silver.ciosacom_pedidos (
+
+    pedido_id INT,
+    cliente_id NVARCHAR(50),
+    paqueteria_id NVARCHAR(50),
+    creado_en DATETIME,
+    valor_pedido DECIMAL(18,2)
+
 );
 GO
 
 
--- =============================================
--- Pool de Crédito
--- =============================================
-
-IF OBJECT_ID('silver.pedidos_pool', 'U') IS NOT NULL
-    DROP TABLE silver.pedidos_pool;
+IF OBJECT_ID('silver.ciosacom_pedidos_pool','U') IS NOT NULL
+DROP TABLE silver.ciosacom_pedidos_pool;
 GO
 
-CREATE TABLE silver.pedidos_pool (
-    pool_id          INT,
-    pedido_id        INT,
-    estatus_id       INT,
-    motivo_id        INT,
+CREATE TABLE silver.ciosacom_pedidos_pool (
+
+    pool_id INT,
+    pedido_id INT,
+    estatus_id INT,
+    motivo_id INT,
     usuario_libero_id NVARCHAR(50),
     fecha_resolucion DATETIME,
-    valor_pedido     DECIMAL(18,2),
-    horas_en_pool    INT,
-    minutos_en_pool  INT,
-    
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Facturas
--- =============================================
-
-IF OBJECT_ID('silver.facturas', 'U') IS NOT NULL
-    DROP TABLE silver.facturas;
-GO
-
-CREATE TABLE silver.facturas (
-    factura_id        INT,
-    pedido_id         INT,
-    estatus_id        INT,
-    fecha_factura     DATETIME,
-    fecha_vencimiento DATETIME,
-    monto_factura     DECIMAL(18,2),
-    
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Pagos
--- =============================================
-
-IF OBJECT_ID('silver.pagos', 'U') IS NOT NULL
-    DROP TABLE silver.pagos;
-GO
-
-CREATE TABLE silver.pagos (
-    pago_id       INT,
-    cliente_id    NVARCHAR(50),
-    fecha_pago    DATETIME,
-    monto_pago    DECIMAL(18,2),
-    metodo_pago   NVARCHAR(50),
-    
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Notas de Crédito
--- =============================================
-
-IF OBJECT_ID('silver.notas_credito', 'U') IS NOT NULL
-    DROP TABLE silver.notas_credito;
-GO
-
-CREATE TABLE silver.notas_credito (
-    nota_id        INT,
-    factura_id     INT,
-    fecha_nota     DATETIME,
-    monto_nota     DECIMAL(18,2),
-    motivo         NVARCHAR(255),
-    
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Clientes
--- =============================================
-
-IF OBJECT_ID('silver.clientes', 'U') IS NOT NULL
-    DROP TABLE silver.clientes;
-GO
-
-CREATE TABLE silver.clientes (
-
-    cliente_id NVARCHAR(50),
-    nombre NVARCHAR(255),
-    rfc NVARCHAR(50),
-    contacto NVARCHAR(255),
-    domicilio NVARCHAR(255),
-
-    limite_credito DECIMAL(18,2),
-    plazo_dias INT,
-
-    fecha_modificacion DATETIME,
-    
-    ingestion_date DATETIME DEFAULT GETDATE()
+    valor_pedido DECIMAL(18,2),
+    horas_en_pool INT,
+    minutos_en_pool INT
 
 );
 GO
 
 
--- =============================================
--- Paqueterías
--- =============================================
-
-IF OBJECT_ID('silver.paqueterias', 'U') IS NOT NULL
-    DROP TABLE silver.paqueterias;
+IF OBJECT_ID('silver.ciosacom_usuario_libero','U') IS NOT NULL
+DROP TABLE silver.ciosacom_usuario_libero;
 GO
 
-CREATE TABLE silver.paqueterias (
-    paqueteria_id   NVARCHAR(50),
-    nombre_paqueteria NVARCHAR(255),
-    tipo_servicio   NVARCHAR(100),
+CREATE TABLE silver.ciosacom_usuario_libero (
 
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Rutas
--- =============================================
-
-IF OBJECT_ID('silver.rutas', 'U') IS NOT NULL
-    DROP TABLE silver.rutas;
-GO
-
-CREATE TABLE silver.rutas (
-    ruta_id     NVARCHAR(50),
-    ruta        NVARCHAR(255),
-    zona        NVARCHAR(100),
-
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Vendedores
--- =============================================
-
-IF OBJECT_ID('silver.vendedores', 'U') IS NOT NULL
-    DROP TABLE silver.vendedores;
-GO
-
-CREATE TABLE silver.vendedores (
-    vendedor_id NVARCHAR(50),
-    ruta_id     NVARCHAR(50),
-    nombre      NVARCHAR(255),
-    contacto    NVARCHAR(255),
-
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Gerente de venta
--- =============================================
-
-IF OBJECT_ID('silver.gerente_venta', 'U') IS NOT NULL
-    DROP TABLE silver.gerente_venta;
-GO
-
-CREATE TABLE silver.gerente_venta (
-    gerente_venta_id NVARCHAR(50),
-    nombre      NVARCHAR(255),
-    contacto    NVARCHAR(255),
-
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Ejecutivo de credito
--- =============================================
-IF OBJECT_ID('silver.ejecutivo_credito', 'U') IS NOT NULL
-    DROP TABLE silver.gerente_venta;
-GO
-
-CREATE TABLE silver.ejecutivo_credito (
-    ejecutivo_credito_id NVARCHAR(50),
-    nombre      NVARCHAR(255),
-    contacto    NVARCHAR(255),
-
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Telemarketing
--- =============================================
-IF OBJECT_ID('silver.telemarketing', 'U') IS NOT NULL
-    DROP TABLE silver.telemarketing;
-GO
-
-CREATE TABLE silver.telemarketing (
-    telemarketing_id NVARCHAR(50),
-    nombre      NVARCHAR(255),
-    contacto    NVARCHAR(255),
-
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-
-
--- =============================================
--- Gerente regional
--- =============================================
-IF OBJECT_ID('silver.gerente_regional', 'U') IS NOT NULL
-    DROP TABLE silver.gerente_regional;
-GO
-
-CREATE TABLE silver.gerente_regional (
-    gerente_regional_id NVARCHAR(50),
-    nombre      NVARCHAR(255),
-    contacto    NVARCHAR(255),
-
-    ingestion_date DATETIME DEFAULT GETDATE()
-);
-GO
-    
-
-
--- =============================================
--- Usuarios liberación de crédito
--- =============================================
-
-IF OBJECT_ID('silver.usuario_libero', 'U') IS NOT NULL
-    DROP TABLE silver.usuario_credito;
-GO
-
-CREATE TABLE silver.usuario_libero (
     usuario_libero_id NVARCHAR(50),
-    nombre            NVARCHAR(255),
+    nombre NVARCHAR(255)
 
-    ingestion_date DATETIME DEFAULT GETDATE()
 );
 GO
 
 
--- =============================================
--- Motivos de Pool
--- =============================================
-
-IF OBJECT_ID('silver.motivos_pool', 'U') IS NOT NULL
-    DROP TABLE silver.motivos_pool;
+IF OBJECT_ID('silver.ciosacom_motivos_pool','U') IS NOT NULL
+DROP TABLE silver.ciosacom_motivos_pool;
 GO
 
-CREATE TABLE silver.motivos_pool (
-    motivo_id   INT,
-    motivo      NVARCHAR(255),
+CREATE TABLE silver.ciosacom_motivos_pool (
 
-    ingestion_date DATETIME DEFAULT GETDATE()
+    motivo_id INT,
+    motivo NVARCHAR(255)
+
 );
 GO
 
 
--- =============================================
--- Estatus Pool
--- =============================================
-
-IF OBJECT_ID('silver.estatus_pool', 'U') IS NOT NULL
-    DROP TABLE silver.estatus_pool;
+IF OBJECT_ID('silver.ciosacom_estatus_pool','U') IS NOT NULL
+DROP TABLE silver.ciosacom_estatus_pool;
 GO
 
-CREATE TABLE silver.estatus_pool (
-    estatus_id   INT,
-    estatus      NVARCHAR(100),
+CREATE TABLE silver.ciosacom_estatus_pool (
 
-    ingestion_date DATETIME DEFAULT GETDATE()
+    estatus_id INT,
+    estatus NVARCHAR(100)
+
 );
 GO
 
 
--- =============================================
--- Estatus Factura
--- =============================================
+/* ==========================================================
+   ERP (SAP)
+========================================================== */
 
-IF OBJECT_ID('silver.estatus_factura', 'U') IS NOT NULL
-    DROP TABLE silver.estatus_factura;
+IF OBJECT_ID('silver.erp_vbrk','U') IS NOT NULL
+DROP TABLE silver.erp_vbrk;
 GO
 
-CREATE TABLE silver.estatus_factura (
-    estatus_id   INT,
-    estatus      NVARCHAR(100),
+CREATE TABLE silver.erp_vbrk (
 
-    ingestion_date DATETIME DEFAULT GETDATE()
+    VBELN NVARCHAR(20),
+    FKDAT DATE,
+    KUNAG NVARCHAR(20),
+    NETWR DECIMAL(18,2),
+    WAERK NVARCHAR(10),
+    FKSTK NVARCHAR(5)
+
+);
+GO
+
+
+IF OBJECT_ID('silver.erp_vbrp','U') IS NOT NULL
+DROP TABLE silver.erp_vbrp;
+GO
+
+CREATE TABLE silver.erp_vbrp (
+
+    VBELN NVARCHAR(20),
+    POSNR NVARCHAR(10),
+    VGBEL NVARCHAR(20),
+    NETWR DECIMAL(18,2)
+
+);
+GO
+
+
+IF OBJECT_ID('silver.erp_bkpf','U') IS NOT NULL
+DROP TABLE silver.erp_bkpf;
+GO
+
+CREATE TABLE silver.erp_bkpf (
+
+    BELNR NVARCHAR(20),
+    BUKRS NVARCHAR(10),
+    GJAHR NVARCHAR(4),
+    BLART NVARCHAR(5),
+    BUDAT DATE,
+    BLDAT DATE
+
+);
+GO
+
+
+IF OBJECT_ID('silver.erp_bseg','U') IS NOT NULL
+DROP TABLE silver.erp_bseg;
+GO
+
+CREATE TABLE silver.erp_bseg (
+
+    BELNR NVARCHAR(20),
+    BUZEI NVARCHAR(10),
+    BUKRS NVARCHAR(10),
+    GJAHR NVARCHAR(4),
+    KUNNR NVARCHAR(20),
+
+    DMBTR DECIMAL(18,2),
+    WRBTR DECIMAL(18,2),
+
+    AUGBL NVARCHAR(20),
+    AUGDT DATE,
+
+    BUDAT DATE
+
+);
+GO
+
+
+IF OBJECT_ID('silver.erp_bsad','U') IS NOT NULL
+DROP TABLE silver.erp_bsad;
+GO
+
+CREATE TABLE silver.erp_bsad (
+
+    BELNR NVARCHAR(20),
+    BUZEI NVARCHAR(10),
+    BUKRS NVARCHAR(10),
+    GJAHR NVARCHAR(4),
+
+    KUNNR NVARCHAR(20),
+
+    AUGBL NVARCHAR(20),
+    AUGDT DATE,
+
+    DMBTR DECIMAL(18,2),
+    BUDAT DATE
+
+);
+GO
+
+
+/* ==========================================================
+   ODOO (CRM)
+========================================================== */
+
+IF OBJECT_ID('silver.odoo_res_partner','U') IS NOT NULL
+DROP TABLE silver.odoo_res_partner;
+GO
+
+CREATE TABLE silver.odoo_res_partner (
+
+    id INT,
+    name NVARCHAR(255),
+    parent_id INT,
+    company_type NVARCHAR(50),
+
+    street NVARCHAR(255),
+    city NVARCHAR(100),
+    country_id INT,
+
+    vat NVARCHAR(50),
+
+    credit_limit DECIMAL(18,2),
+
+    create_date DATETIME,
+    write_date DATETIME
+
+);
+GO
+
+
+IF OBJECT_ID('silver.odoo_res_users','U') IS NOT NULL
+DROP TABLE silver.odoo_res_users;
+GO
+
+CREATE TABLE silver.odoo_res_users (
+
+    id INT,
+    partner_id INT,
+    login NVARCHAR(100),
+    active BIT,
+
+    create_date DATETIME
+
+);
+GO
+
+
+IF OBJECT_ID('silver.odoo_hr_employee','U') IS NOT NULL
+DROP TABLE silver.odoo_hr_employee;
+GO
+
+CREATE TABLE silver.odoo_hr_employee (
+
+    id INT,
+    name NVARCHAR(255),
+    user_id INT,
+
+    work_email NVARCHAR(255),
+
+    create_date DATETIME
+
 );
 GO

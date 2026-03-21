@@ -79,6 +79,61 @@ BEGIN
         PRINT '----------------------------------------------------------';
 
 
+        /* ==========================================================
+           PEDIDOS POOL
+        ========================================================== */
+        
+        SET @start_time = GETDATE();
+        
+        DECLARE @last_fecha_pool DATETIME
+        
+        SELECT @last_fecha_pool = ISNULL(MAX(fecha_resolucion),'1900-01-01')
+        FROM bronze.pedidos_pool
+        
+        PRINT '>> Loading bronze.pedidos_pool';
+        
+        INSERT INTO bronze.pedidos_pool
+        (
+            pool_id,
+            pedido_id,
+            estatus_id,
+            motivo_id,
+            usuario_libero_id,
+            fecha_resolucion,
+            valor_pedido,
+            horas_en_pool,
+            minutos_en_pool
+        )
+        SELECT
+            pool_id,
+            pedido_id,
+            estatus_id,
+            motivo_id,
+            usuario_libero_id,
+            fecha_resolucion,
+            valor_pedido,
+            horas_en_pool,
+            minutos_en_pool
+        FROM OPENQUERY(CiosaCOM, '
+            SELECT
+                pool_id,
+                pedido_id,
+                estatus_id,
+                motivo_id,
+                usuario_libero_id,
+                fecha_resolucion,
+                valor_pedido,
+                horas_en_pool,
+                minutos_en_pool
+            FROM pedidos_pool
+        ') src
+        WHERE src.fecha_resolucion > @last_fecha_pool;
+        
+        SET @end_time = GETDATE();
+        
+        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds';
+        PRINT '---------------------------------------------------------------------------------------------';
+
 
         /* ==========================================================
            FACTURAS
@@ -208,63 +263,6 @@ BEGIN
             FROM notas_credito
         ') src
         WHERE src.fecha_nota > @last_fecha_nota;
-        
-        SET @end_time = GETDATE();
-        
-        PRINT '>> Load Duration: ' + CAST(DATEDIFF(second, @start_time, @end_time) AS NVARCHAR) + ' seconds';
-        PRINT '---------------------------------------------------------------------------------------------';
-
-
-
-        /* ==========================================================
-           PEDIDOS POOL
-        ========================================================== */
-        
-        SET @start_time = GETDATE();
-        
-        DECLARE @last_fecha_pool DATETIME
-        
-        SELECT @last_fecha_pool = ISNULL(MAX(fecha_resolucion),'1900-01-01')
-        FROM bronze.pedidos_pool
-        
-        PRINT '>> Loading bronze.pedidos_pool';
-        
-        INSERT INTO bronze.pedidos_pool
-        (
-            pool_id,
-            pedido_id,
-            estatus_id,
-            motivo_id,
-            usuario_libero_id,
-            fecha_resolucion,
-            valor_pedido,
-            horas_en_pool,
-            minutos_en_pool
-        )
-        SELECT
-            pool_id,
-            pedido_id,
-            estatus_id,
-            motivo_id,
-            usuario_libero_id,
-            fecha_resolucion,
-            valor_pedido,
-            horas_en_pool,
-            minutos_en_pool
-        FROM OPENQUERY(CiosaCOM, '
-            SELECT
-                pool_id,
-                pedido_id,
-                estatus_id,
-                motivo_id,
-                usuario_libero_id,
-                fecha_resolucion,
-                valor_pedido,
-                horas_en_pool,
-                minutos_en_pool
-            FROM pedidos_pool
-        ') src
-        WHERE src.fecha_resolucion > @last_fecha_pool;
         
         SET @end_time = GETDATE();
         

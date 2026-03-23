@@ -1,29 +1,18 @@
-/* ============================================================================
-Script: ddl_scd_tables.sql
-Layer: Analytics
+/*
+===============================================================================
+DDL Script: Create analytics Tables
+===============================================================================
+Script Purpose:
+    This script creates tables in the 'analytics' schema, dropping existing tables
+    if they already exist.
 
-Description:
-This script creates Slowly Changing Dimension (SCD) tables used to store
-historical relationships between business entities.
+    This layer contains historical and analytical tables used to support
+    advanced data modeling patterns such as Slowly Changing Dimensions (SCD).
 
-Currently it creates the table:
-    analytics.bridge_cliente_empleado
+    Run this script to re-define the DDL structure of 'analytics' tables.
+===============================================================================
+*/
 
-Purpose:
-The table tracks historical relationships between customers and employees
-(interlocutors) such as sales representatives, sales managers, credit
-executives, and telemarketing agents.
-
-Usage:
-The table is populated by the procedure:
-    analytics.proc_load_bridge_cliente_empleado
-
-This table serves as the historical foundation for the Gold layer view:
-    gold.bridge_interlocutores
-============================================================================ */
-
-CREATE SCHEMA analytics;
-GO
     
 IF OBJECT_ID('analytics.bridge_cliente_empleado','U') IS NOT NULL
 DROP TABLE analytics.bridge_cliente_empleado;

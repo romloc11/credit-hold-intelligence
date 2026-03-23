@@ -149,7 +149,7 @@ Used to enrich sales and financial metrics with customer attributes.
 
 ---
 
-## 9. gold.dim_usuario_libero
+## 8. gold.dim_usuario_libero
 
 **Purpose**  
 Dimension view containing users responsible for releasing orders from the credit pool.
@@ -163,7 +163,7 @@ Dimension view containing users responsible for releasing orders from the credit
 
 ---
 
-## 10. gold.dim_motivo_pool
+## 9. gold.dim_motivo_pool
 
 **Purpose**  
 Dimension view containing reasons why orders enter the credit pool.
@@ -177,7 +177,7 @@ Dimension view containing reasons why orders enter the credit pool.
 
 ---
 
-## 11. gold.dim_estatus_pool
+## 10. gold.dim_estatus_pool
 
 **Purpose**  
 Dimension view describing credit pool status codes.
@@ -191,7 +191,7 @@ Dimension view describing credit pool status codes.
 
 ---
 
-## 12. gold.dim_estatus_factura
+## 11. gold.dim_estatus_factura
 
 **Purpose**  
 Dimension view defining invoice status values from the ERP system.
@@ -205,7 +205,7 @@ Dimension view defining invoice status values from the ERP system.
 
 ---
 
-## 13. gold.dim_empleado
+## 12. gold.dim_empleado
 
 **Purpose**  
 Dimension view containing employee information used for commercial and operational roles.
@@ -221,7 +221,7 @@ Dimension view containing employee information used for commercial and operation
 
 ---
 
-## 14. gold.bridge_interlocutores
+## 13. gold.bridge_interlocutores
 
 **Purpose**  
 Bridge view linking customers with employees who interact with them.

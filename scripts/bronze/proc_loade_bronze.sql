@@ -582,38 +582,117 @@ PRINT '---------------------------------------';
 PRINT 'Loading ODOO Bronze Tables';
 PRINT '---------------------------------------';
 
-
 /* ==========================================================
    ODOO RES PARTNER
 ========================================================== */
 
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.odoo_res_partner';
+
 TRUNCATE TABLE bronze.odoo_res_partner;
 
 INSERT INTO bronze.odoo_res_partner
-SELECT *
+(
+    id,
+    name,
+    parent_id,
+    company_type,
+    street,
+    city,
+    country_id,
+    vat,
+    credit_limit,
+    create_date,
+    write_date
+)
+
+SELECT
+    id,
+    name,
+    parent_id,
+    company_type,
+    street,
+    city,
+    country_id,
+    vat,
+    credit_limit,
+    create_date,
+    write_date
+
 FROM ODOO.dbo.res_partner;
+
+SET @end_time = GETDATE();
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
 
 
 /* ==========================================================
    ODOO USERS
 ========================================================== */
 
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.odoo_res_users';
+
 TRUNCATE TABLE bronze.odoo_res_users;
 
 INSERT INTO bronze.odoo_res_users
-SELECT *
+(
+    id,
+    partner_id,
+    login,
+    active,
+    create_date
+)
+
+SELECT
+    id,
+    partner_id,
+    login,
+    active,
+    create_date
+
 FROM ODOO.dbo.res_users;
+
+SET @end_time = GETDATE();
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
+
 
 
 /* ==========================================================
    ODOO EMPLOYEE
 ========================================================== */
 
+SET @start_time = GETDATE();
+
+PRINT '>> Loading bronze.odoo_hr_employee';
+
 TRUNCATE TABLE bronze.odoo_hr_employee;
 
 INSERT INTO bronze.odoo_hr_employee
-SELECT *
+(
+    id,
+    name,
+    user_id,
+    work_email,
+    create_date
+)
+
+SELECT
+    id,
+    name,
+    user_id,
+    work_email,
+    create_date
+
 FROM ODOO.dbo.hr_employee;
+
+SET @end_time = GETDATE();
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR) + ' seconds';
 
 
 

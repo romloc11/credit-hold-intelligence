@@ -1,136 +1,216 @@
-# Data Warehouse – Credit & Collections (Pedidos en Pool)
+# Order-to-Cash Data Warehouse
 
-This project presents an end-to-end data warehouse solution focused on analyzing orders held in credit review (pool). It covers data ingestion, transformation, modeling, and analytical layer design using SQL Server.
+## Overview
 
-The goal is to enable visibility into operational bottlenecks, resolution times, and credit risk indicators.
+This project implements a modern **Data Warehouse for Order-to-Cash (O2C) analytics**, integrating operational data from multiple enterprise systems including SAP ERP, Odoo CRM, and internal logistics systems.
 
----
+The objective of this platform is to provide a **single source of truth for commercial and financial analytics**, enabling the business to analyze the complete lifecycle of a customer order — from order creation to invoicing, payment, and credit adjustments.
 
-🏗️ Data Architecture  
+The solution follows a **Medallion Architecture (Bronze → Silver → Analytics → Gold)** to ensure data quality, scalability, and maintainability.
 
-The project follows a Medallion Architecture with three layers:
+Data is ingested from operational systems, standardized and cleansed in intermediate layers, and finally modeled into a **Star Schema optimized for BI tools such as Power BI**.
 
-**Bronze Layer**  
-Stores raw data extracted from the transactional system (CIOSA) via Linked Server. Data is ingested without transformations.
+The data warehouse supports analysis of:
 
-**Silver Layer**  
-Applies data cleansing and transformation:
-- Deduplication of orders
-- Standardization of text fields
-- Mapping of status codes
-- Basic business rules
+* Customer orders and order lifecycle
+* Invoice generation and status tracking
+* Payment applications and collections
+* Credit notes and financial adjustments
+* Order exception management (Pool analysis)
+* Customer–employee commercial relationships
 
-**Gold Layer**  
-Provides a star schema optimized for analytics:
-- Fact table for orders in pool
-- Dimension tables for status and users (vendedores)
+The final Gold layer exposes **business-ready fact and dimension tables**, enabling fast and reliable reporting for finance, sales, and operations teams.
 
 ---
 
-📖 Project Overview
+# Architecture
 
-This project includes:
+The project follows a **Medallion Architecture**, a layered data design pattern widely used in modern data platforms.
 
-**Data Architecture**  
-Design of a layered data warehouse using Bronze, Silver, and Gold structure.
+Each layer progressively improves data quality and structure.
 
-**ETL Pipelines**  
-Development of SQL-based stored procedures to load and transform data across layers.
+```
+Source Systems
+     ↓
+Bronze Layer
+(raw ingestion)
+     ↓
+Silver Layer
+(cleaned and standardized data)
+     ↓
+Analytics Layer
+(SCD and historical modeling)
+     ↓
+Gold Layer
+(star schema for BI)
+```
 
-**Data Modeling**  
-Implementation of a star schema to support scalable analytics use cases.
+### Bronze Layer
 
-**Analytics Focus**  
-Analysis of:
-- Time spent in pool (SLA / operational efficiency)
-- Reasons for credit holds (motivo_pool)
-- Resolution status (liberado, cancelado, retenido)
-- User involvement in resolution
+Stores raw data extracted from source systems without transformations.
 
----
+Characteristics:
 
-## Key Use Cases
+* Full raw ingestion
+* No business logic
+* Minimal transformations
+* Source system traceability
 
-- Monitor operational performance in credit review
-- Identify delays in order release
-- Analyze main causes of credit blockage
-- Support decision-making in credit and collections
+### Silver Layer
 
----
+Cleans and standardizes operational data.
 
-## Tech Stack
+Transformations include:
 
-- SQL Server
-- T-SQL (Stored Procedures, Views)
-- Linked Server (CIOSACOM)
-- Draw.io (Data modeling and architecture diagrams)
-- GitHub (Version control)
+* Removing duplicates
+* Standardizing text values
+* Data quality filtering
+* Data normalization
 
----
+### Analytics Layer
 
-## Data Source
+Contains advanced modeling structures such as:
 
-| Field        | Value                                    |
-|--------------|------------------------------------------|
-| Source       | CIOSA operational system                 |
-| Object Type  | Relational database (transactional)      |
-| Interface    | SQL Server Linked Server (CIOSACOM)      |
+* Slowly Changing Dimensions (SCD Type 2)
+* Historical relationship tracking
+* Analytical bridge tables
 
----
+### Gold Layer
 
-## Repository Structure 🏗️ 
-IMAGEN
+Provides **business-ready data models** for analytics.
 
-
----
-
-## Data Model (Gold Layer)
-
-**Fact Table**
-- `gold_fact_pedidos_pool`
-  - Contains one record per order in pool
-  - Includes metrics such as:
-    - `horas_en_pool`
-    - `minutos_en_pool`
-    - `valor_pedido`
-
-**Dimension Tables**
-- `gold_dim_estatus_pool`
-- `gold_dim_vendedores`
-
-Designed to support future scalability with additional entities:
-- clientes
-- facturas
-- pagos
-- notas de crédito
+This layer implements a **Star Schema** with fact and dimension tables optimized for BI tools.
 
 ---
 
-## Project Requirements
+# Data Sources
 
-**Objective**  
-Build a data warehouse to analyze orders in credit hold and improve operational visibility.
+The data warehouse integrates information from multiple operational systems.
 
-**Scope**
-- Focus on current operational data (no historization)
-- Integrate data from a single transactional source
-- Enable analytical queries through structured modeling
+| System   | Description                                                           |
+| -------- | --------------------------------------------------------------------- |
+| SAP ERP  | Financial data including invoices, payments, and accounting documents |
+| Odoo CRM | Customer master data and commercial relationships                     |
+| CIOSACOM | Internal operational system for order and logistics management        |
 
-**Data Quality**
-- Remove duplicates using latest record logic
-- Normalize user and status fields
-- Handle null values based on business rules
+These systems provide data required to analyze the **complete Order-to-Cash lifecycle**.
 
 ---
 
-## Future Improvements
+# Star Schema
 
-- Add dimension for client
-- Expand fact table to include full order lifecycle
-- Integrate invoices and payments
-- Implement historization (Slowly Changing Dimensions)
-- Connect to BI tools (Power BI / Tableau)
+The Gold layer implements a dimensional model optimized for analytics.
+
+### Fact Tables
+
+* `fact_pedidos`
+* `fact_facturas`
+* `fact_pagos`
+* `fact_aplicaciones_pago`
+* `fact_notas_credito`
+* `fact_pedidos_pool`
+
+### Dimension Tables
+
+* `dim_cliente`
+* `dim_empleado`
+* `dim_estatus_factura`
+* `dim_estatus_pool`
+* `dim_motivo_pool`
+* `dim_usuario_libero`
+* `dim_paqueteria`
+
+### Bridge Tables
+
+* `bridge_interlocutores`
+
+This bridge table tracks the historical relationship between customers and employees using **Slowly Changing Dimension Type 2 (SCD2)** logic.
 
 ---
+
+# ETL Pipeline
+
+The ETL process is implemented using SQL stored procedures and runs in the following order:
+
+1. Load Bronze layer (raw ingestion)
+2. Load Silver layer (data cleansing)
+3. Load Analytics layer (historical modeling)
+4. Expose Gold layer views for reporting
+
+```
+Bronze Load
+     ↓
+Silver Load
+     ↓
+Analytics Procedures
+     ↓
+Gold Views
+     ↓
+Power BI / Reporting
+```
+
+---
+
+# Repository Structure
+
+```
+data-warehouse-project/
+
+│
+├── sql
+│   ├── bronze
+│   ├── silver
+│   ├── analytics
+│   ├── gold
+│
+├── docs
+│   ├── architecture
+│   ├── data_model
+│   ├── etl
+│
+├── diagrams
+│   ├── star_schema.drawio
+│
+└── README.md
+```
+
+---
+
+# Tools and Technologies
+
+This project uses the following technologies:
+
+* SQL Server
+* T-SQL (Stored Procedures and Views)
+* Data Warehouse Modeling
+* Medallion Architecture
+* Slowly Changing Dimensions (SCD)
+* Star Schema Design
+* Power BI (for reporting)
+
+---
+
+# Use Cases
+
+This data warehouse enables several analytical capabilities:
+
+* Sales performance analysis
+* Customer revenue tracking
+* Order-to-cash lifecycle analysis
+* Invoice and payment reconciliation
+* Operational monitoring of order exceptions
+* Customer–employee relationship analysis
+
+---
+
+# Future Improvements
+
+Potential future enhancements include:
+
+* Date dimension for advanced time analysis
+* Incremental ETL processing
+* Data quality monitoring
+* Automated pipeline orchestration
+* Expanded financial metrics and KPIs
 
 

@@ -1,3 +1,53 @@
+/* ============================================================================
+Script: proc_load_bridge_interlocutores.sql
+Layer: Analytics
+
+Description:
+This procedure populates and maintains the table
+analytics.bridge_cliente_empleado using a Slowly Changing Dimension Type 2
+(SCD Type 2) strategy.
+
+Purpose:
+The procedure tracks historical changes in the relationship between customers
+and their assigned employees (interlocutors).
+
+Interlocutors may include roles such as:
+    - VENDEDOR
+    - GERENTE_VENTA
+    - TELEMARKETING
+    - EJECUTIVO_CREDITO
+    - GERENTE_REGIONAL
+
+Process Overview:
+1. Build a current snapshot of customer–employee relationships from the
+   Silver layer tables.
+2. Compare the snapshot against existing records in
+   analytics.bridge_cliente_empleado.
+3. Close records where the assigned employee has changed.
+4. Insert new records for new assignments.
+
+Source Tables:
+    silver.odoo_res_partner
+    silver.odoo_res_users
+    silver.odoo_hr_employee
+
+Output Table:
+    analytics.bridge_cliente_empleado
+
+Execution:
+This procedure should be executed after the Silver layer load process as part
+of the ETL pipeline.
+
+Pipeline Order:
+    Bronze Load
+        ↓
+    Silver Load
+        ↓
+    analytics.proc_load_bridge_cliente_empleado
+        ↓
+    Gold Views
+============================================================================ */
+
 CREATE OR ALTER PROCEDURE analytics.proc_load_bridge_cliente_empleado
 AS
 BEGIN

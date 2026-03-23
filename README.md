@@ -29,6 +29,8 @@ The project follows a **Medallion Architecture**, a layered data design pattern 
 
 Each layer progressively improves data quality and structure.
 
+![Architecture](docs/architecture_dwh.drawio.png)
+
 ```
 Source Systems
      ↓
@@ -37,9 +39,6 @@ Bronze Layer
      ↓
 Silver Layer
 (cleaned and standardized data)
-     ↓
-Analytics Layer
-(SCD and historical modeling)
      ↓
 Gold Layer
 (star schema for BI)
@@ -100,6 +99,8 @@ These systems provide data required to analyze the **complete Order-to-Cash life
 # Star Schema
 
 The Gold layer implements a dimensional model optimized for analytics.
+
+![Star Schema](docs/star_schema.drawio.png)
 
 ### Fact Tables
 

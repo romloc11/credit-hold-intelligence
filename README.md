@@ -1,6 +1,6 @@
 # Order-to-Cash Data Warehouse
 
-## Overview
+##📖 Overview
 
 This project implements a modern **Data Warehouse for Order-to-Cash (O2C) analytics**, integrating operational data from multiple enterprise systems including SAP ERP, Odoo CRM, and internal logistics systems.
 
@@ -14,7 +14,7 @@ The final Gold layer exposes **business-ready fact and dimension tables**, enabl
 
 ---
 
-# Architecture
+#🏗️ Architecture
 
 The project follows a **Medallion Architecture**, a layered data design pattern widely used in modern data platforms.
 

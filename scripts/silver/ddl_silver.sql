@@ -255,3 +255,28 @@ CREATE TABLE silver.odoo_hr_employee (
 
 );
 GO
+
+
+
+IF OBJECT_ID('silver.bridge_cliente_empleado','U') IS NOT NULL
+DROP TABLE silver.bridge_cliente_empleado;
+GO
+
+CREATE TABLE silver.bridge_cliente_empleado (
+
+    bridge_id INT IDENTITY(1,1) PRIMARY KEY,
+
+    cliente_id INT NOT NULL,
+
+    empleado_id INT NOT NULL,
+
+    rol VARCHAR(50) NOT NULL,
+
+    fecha_inicio DATETIME NOT NULL,
+
+    fecha_fin DATETIME NULL,
+
+    es_actual BIT NOT NULL
+
+);
+GO

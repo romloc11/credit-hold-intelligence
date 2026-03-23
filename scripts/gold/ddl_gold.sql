@@ -123,15 +123,13 @@ LEFT JOIN silver.odoo_res_users u
 CREATE OR ALTER VIEW gold.bridge_interlocutores AS
 
 SELECT
-
     cliente_id,
     empleado_id,
     rol,
     fecha_inicio,
     fecha_fin
-
-FROM analytics.bridge_cliente_empleado;
-
+FROM analytics.bridge_cliente_empleado
+WHERE es_actual = 1;
 
 
 /* ==========================================================

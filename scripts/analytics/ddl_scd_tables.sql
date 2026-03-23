@@ -14,19 +14,6 @@ The table tracks historical relationships between customers and employees
 (interlocutors) such as sales representatives, sales managers, credit
 executives, and telemarketing agents.
 
-Design:
-This table implements a Slowly Changing Dimension Type 2 (SCD Type 2) pattern,
-allowing the system to preserve the history of changes in customer ownership
-and commercial team assignments.
-
-Key Fields:
-    cliente_id   → Customer identifier
-    empleado_id  → Employee identifier
-    rol          → Role of the employee relative to the customer
-    fecha_inicio → Start date of the relationship
-    fecha_fin    → End date of the relationship
-    es_actual    → Flag indicating the current active relationship
-
 Usage:
 The table is populated by the procedure:
     analytics.proc_load_bridge_cliente_empleado

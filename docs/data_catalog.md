@@ -226,7 +226,11 @@ Dimension view containing employee information used for commercial and operation
 **Purpose**  
 Bridge view linking customers with employees who interact with them.
 
-Supports many-to-many relationships and historical role tracking.
+This view exposes the historical customer–employee relationships stored in the
+SCD Type 2 table `analytics.bridge_cliente_empleado`.
+
+It allows tracking changes in commercial ownership such as sales representatives,
+sales managers, credit executives, and telemarketing agents over time.
 
 **Columns**
 
@@ -237,3 +241,4 @@ Supports many-to-many relationships and historical role tracking.
 | rol | VARCHAR | Role of the employee |
 | fecha_inicio | DATETIME | Start date of relationship |
 | fecha_fin | DATETIME | End date of relationship |
+| es_actual | BIT | Flag indicating the current active relationship |

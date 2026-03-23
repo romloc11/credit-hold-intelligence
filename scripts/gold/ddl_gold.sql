@@ -121,24 +121,16 @@ LEFT JOIN silver.odoo_res_users u
 
 
 CREATE OR ALTER VIEW gold.bridge_interlocutores AS
+
 SELECT
 
-    p.id AS cliente_id,
+    cliente_id,
+    empleado_id,
+    rol,
+    fecha_inicio,
+    fecha_fin
 
-    e.id AS empleado_id,
-
-    'VENDEDOR' AS rol,
-
-    p.create_date AS fecha_inicio,
-
-    NULL AS fecha_fin
-
-FROM silver.odoo_res_partner p
-
-LEFT JOIN silver.odoo_hr_employee e
-    ON 1=1
-
-WHERE p.company_type = 'COMPANY';
+FROM analytics.bridge_cliente_empleado;
 
 
 

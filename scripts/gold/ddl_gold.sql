@@ -88,17 +88,6 @@ FROM silver.erp_vbrk;
 
 
 
-CREATE OR ALTER VIEW gold.dim_paqueteria AS
-SELECT DISTINCT
-
-    paqueteria_id
-
-FROM silver.ciosacom_pedidos
-WHERE paqueteria_id IS NOT NULL;
-
-
-
-
 /* ==========================================================
 INTERLOCUTORES
 ========================================================== */

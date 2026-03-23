@@ -117,7 +117,7 @@ SELECT
     rol,
     fecha_inicio,
     fecha_fin
-FROM analytics.bridge_cliente_empleado
+FROM silver.bridge_cliente_empleado
 WHERE es_actual = 1;
 
 

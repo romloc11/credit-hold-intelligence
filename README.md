@@ -83,15 +83,12 @@ The ETL process is implemented using SQL stored procedures and runs in the follo
 
 1. Load Bronze layer (raw ingestion)
 2. Load Silver layer (data cleansing)
-3. Load Analytics layer (historical modeling)
 4. Expose Gold layer views for reporting
 
 ```
 Bronze Load
      ↓
 Silver Load
-     ↓
-Analytics Procedures
      ↓
 Gold Views
      ↓
@@ -100,27 +97,27 @@ Power BI / Reporting
 
 ---
 
-# Repository Structure
+# 📂 Repository Structure
 
 ```
 data-warehouse-project/
 
 │
-├── sql
-│   ├── bronze
-│   ├── silver
-│   ├── analytics
-│   ├── gold
+├── scripts/                              # SQL scripts for ETL and transformations
+│   ├── bronze                            # Scripts for extracting and loading raw data
+│   ├── silver                            # Scripts for cleaning and transforming data
+│   ├── gold                              # Scripts for creating analytical models
 │
-├── docs
-│   ├── architecture
-│   ├── data_model
-│   ├── etl
+├── docs/
+│   ├── data_catalog.md                   # Catalog of datasets, including field descriptions and metadata
+│   ├── architecture_dwh.drawio           # Draw.io file shows the project's architecture
+│   ├── star_schema.drawio                # Draw.io file for data models (star schema)
+│ 
+├── test/                                 # Test scripts and quality files
+│   ├── quality_chacks_silver             
 │
-├── diagrams
-│   ├── star_schema.drawio
 │
-└── README.md
+└── README.md                             # Project overview and instructions
 ```
 
 ---
@@ -135,7 +132,6 @@ This project uses the following technologies:
 * Medallion Architecture
 * Slowly Changing Dimensions (SCD)
 * Star Schema Design
-* Power BI (for reporting)
 
 ---
 
@@ -150,16 +146,5 @@ This data warehouse enables several analytical capabilities:
 * Operational monitoring of order exceptions
 * Customer–employee relationship analysis
 
----
-
-# Future Improvements
-
-Potential future enhancements include:
-
-* Date dimension for advanced time analysis
-* Incremental ETL processing
-* Data quality monitoring
-* Automated pipeline orchestration
-* Expanded financial metrics and KPIs
 
 

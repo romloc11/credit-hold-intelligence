@@ -4,8 +4,8 @@ Create Database and Schemas
 =============================================================
 Script Purpose:
     This script creates a new database named 'DWH_OrderToCash' after checking if it already exists. 
-    If the database exists, it is dropped and recreated. Additionally, the script sets up three schemas 
-    within the database: 'bronze', 'silver', and 'gold'.
+    If the database exists, it is dropped and recreated. Additionally, the script sets up four schemas 
+    within the database: 'bronze', 'silver', 'analytics' and 'gold'.
 	
 WARNING:
     Running this script will drop the entire 'DWH_OrderToCash' database if it exists. 
@@ -39,4 +39,7 @@ CREATE SCHEMA silver;
 GO
 
 CREATE SCHEMA gold;
+GO
+
+CREATE SCHEMA analytics;
 GO

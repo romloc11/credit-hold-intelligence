@@ -32,6 +32,9 @@ CREATE TABLE analytics.bridge_cliente_empleado (
 
     fecha_fin DATETIME NULL,
 
-    es_actual BIT NOT NULL
+    es_actual BIT NOT NULL,
+
+    fecha_carga DATETIME DEFAULT GETDATE()
 
 );
+GO

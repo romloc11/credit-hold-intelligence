@@ -149,19 +149,6 @@ Used to enrich sales and financial metrics with customer attributes.
 
 ---
 
-## 8. gold.dim_paqueteria
-
-**Purpose**  
-Dimension view listing shipping providers used for orders.
-
-**Columns**
-
-| Column Name | Data Type | Description |
-|-------------|-----------|-------------|
-| paqueteria_id | VARCHAR | Unique shipping provider identifier |
-
----
-
 ## 9. gold.dim_usuario_libero
 
 **Purpose**  

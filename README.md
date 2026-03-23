@@ -29,7 +29,9 @@ The project follows a **Medallion Architecture**, a layered data design pattern 
 
 Each layer progressively improves data quality and structure.
 
-![Architecture](docs/architecture_dwh.drawio.png)
+<p align="center">
+  <img src="docs/architecture_dwh.drawio.png" width="100%">
+</p>
 
 ```
 Source Systems

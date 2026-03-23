@@ -48,18 +48,42 @@ Pipeline Order:
     Gold Views
 ============================================================================ */
 
+/*
+============================================================================
+Procedure: analytics.proc_load_bridge_cliente_empleado
+Layer: Analytics
+
+Purpose:
+Maintain historical relationship between customers and employees
+using SCD Type 2 logic.
+============================================================================
+*/
+
 CREATE OR ALTER PROCEDURE analytics.proc_load_bridge_cliente_empleado
 AS
 BEGIN
 
 SET NOCOUNT ON;
 
+DECLARE @start_time DATETIME
+DECLARE @end_time DATETIME
+
+SET @start_time = GETDATE()
+
+PRINT '===================================='
+PRINT 'Loading analytics.bridge_cliente_empleado'
+PRINT '===================================='
+
+
+/* ==========================================================
+   BUILD CURRENT SNAPSHOT
+========================================================== */
 
 WITH interlocutores_actuales AS (
 
--- VENDEDOR
+/* ---------------- VENDEDOR ---------------- */
 
-SELECT
+SELECT DISTINCT
 
     p.id AS cliente_id,
     e.id AS empleado_id,
@@ -67,21 +91,22 @@ SELECT
 
 FROM silver.odoo_res_partner p
 
-LEFT JOIN silver.odoo_res_users u
+JOIN silver.odoo_res_users u
     ON p.user_id = u.id
 
-LEFT JOIN silver.odoo_hr_employee e
+JOIN silver.odoo_hr_employee e
     ON u.id = e.user_id
 
 WHERE p.company_type = 'COMPANY'
+AND e.id IS NOT NULL
 
 
 UNION ALL
 
 
--- GERENTE DE VENTAS
+/* ---------------- GERENTE VENTA ---------------- */
 
-SELECT
+SELECT DISTINCT
 
     p.id AS cliente_id,
     e.id AS empleado_id,
@@ -89,21 +114,22 @@ SELECT
 
 FROM silver.odoo_res_partner p
 
-LEFT JOIN silver.odoo_res_users u
+JOIN silver.odoo_res_users u
     ON p.sales_manager_id = u.id
 
-LEFT JOIN silver.odoo_hr_employee e
+JOIN silver.odoo_hr_employee e
     ON u.id = e.user_id
 
 WHERE p.company_type = 'COMPANY'
+AND e.id IS NOT NULL
 
 
 UNION ALL
 
 
--- TELEMARKETING
+/* ---------------- TELEMARKETING ---------------- */
 
-SELECT
+SELECT DISTINCT
 
     p.id AS cliente_id,
     e.id AS empleado_id,
@@ -111,62 +137,71 @@ SELECT
 
 FROM silver.odoo_res_partner p
 
-LEFT JOIN silver.odoo_res_users u
+JOIN silver.odoo_res_users u
     ON p.telemarketing_user_id = u.id
 
-LEFT JOIN silver.odoo_hr_employee e
+JOIN silver.odoo_hr_employee e
     ON u.id = e.user_id
 
 WHERE p.company_type = 'COMPANY'
-
-UNION ALL
-
-
--- EJECUTIVO CREDITO
-
-SELECT
-
-    p.id AS cliente_id,
-    e.id AS empleado_id,
-    'EJECUTIVO CREDITO' AS rol
-
-FROM silver.odoo_res_partner p
-
-LEFT JOIN silver.odoo_res_users u
-    ON p.user_id = u.id
-
-LEFT JOIN silver.odoo_hr_employee e
-    ON u.id = e.user_id
-
-WHERE p.company_type = 'COMPANY'
+AND e.id IS NOT NULL
 
 
 UNION ALL
 
 
--- GERENTE REGIONAL
+/* ---------------- EJECUTIVO CREDITO ---------------- */
 
-SELECT
+SELECT DISTINCT
 
     p.id AS cliente_id,
     e.id AS empleado_id,
-    'GERENTE REGIONAL' AS rol
+    'EJECUTIVO_CREDITO' AS rol
 
 FROM silver.odoo_res_partner p
 
-LEFT JOIN silver.odoo_res_users u
-    ON p.user_id = u.id
+JOIN silver.odoo_res_users u
+    ON p.credit_user_id = u.id
 
-LEFT JOIN silver.odoo_hr_employee e
+JOIN silver.odoo_hr_employee e
     ON u.id = e.user_id
 
 WHERE p.company_type = 'COMPANY'
+AND e.id IS NOT NULL
+
+
+UNION ALL
+
+
+/* ---------------- GERENTE REGIONAL ---------------- */
+
+SELECT DISTINCT
+
+    p.id AS cliente_id,
+    e.id AS empleado_id,
+    'GERENTE_REGIONAL' AS rol
+
+FROM silver.odoo_res_partner p
+
+JOIN silver.odoo_res_users u
+    ON p.regional_manager_id = u.id
+
+JOIN silver.odoo_hr_employee e
+    ON u.id = e.user_id
+
+WHERE p.company_type = 'COMPANY'
+AND e.id IS NOT NULL
 
 )
 
+
+
+/* ==========================================================
+   CLOSE OLD RECORDS (SCD2)
+========================================================== */
+
 UPDATE b
 SET
-
     fecha_fin = GETDATE(),
     es_actual = 0
 
@@ -177,10 +212,13 @@ JOIN interlocutores_actuales s
     AND b.rol = s.rol
 
 WHERE b.es_actual = 1
-AND b.empleado_id <> s.empleado_id;
+AND b.empleado_id <> s.empleado_id
 
 
--- insertar nuevos registros
+
+/* ==========================================================
+   INSERT NEW RELATIONSHIPS
+========================================================== */
 
 INSERT INTO analytics.bridge_cliente_empleado
 (
@@ -209,8 +247,13 @@ LEFT JOIN analytics.bridge_cliente_empleado b
     AND b.es_actual = 1
 
 WHERE b.cliente_id IS NULL
-OR b.empleado_id <> s.empleado_id;
+OR b.empleado_id <> s.empleado_id
+
+
+
+SET @end_time = GETDATE()
+
+PRINT 'Duration: ' + CAST(DATEDIFF(second,@start_time,@end_time) AS NVARCHAR)
+PRINT 'Bridge load completed'
 
 END
-
-

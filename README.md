@@ -10,15 +10,6 @@ The solution follows a **Medallion Architecture (Bronze → Silver → Analytics
 
 Data is ingested from operational systems, standardized and cleansed in intermediate layers, and finally modeled into a **Star Schema optimized for BI tools such as Power BI**.
 
-The data warehouse supports analysis of:
-
-* Customer orders and order lifecycle
-* Invoice generation and status tracking
-* Payment applications and collections
-* Credit notes and financial adjustments
-* Order exception management (Pool analysis)
-* Customer–employee commercial relationships
-
 The final Gold layer exposes **business-ready fact and dimension tables**, enabling fast and reliable reporting for finance, sales, and operations teams.
 
 ---
@@ -46,41 +37,9 @@ Gold Layer
 (star schema for BI)
 ```
 
-### Bronze Layer
-
-Stores raw data extracted from source systems without transformations.
-
-Characteristics:
-
-* Full raw ingestion
-* No business logic
-* Minimal transformations
-* Source system traceability
-
-### Silver Layer
-
-Cleans and standardizes operational data.
-
-Transformations include:
-
-* Removing duplicates
-* Standardizing text values
-* Data quality filtering
-* Data normalization
-
-### Analytics Layer
-
-Contains advanced modeling structures such as:
-
-* Slowly Changing Dimensions (SCD Type 2)
-* Historical relationship tracking
-* Analytical bridge tables
-
-### Gold Layer
-
-Provides **business-ready data models** for analytics.
-
-This layer implements a **Star Schema** with fact and dimension tables optimized for BI tools.
+Bronze Layer: Stores raw data as-is from the source systems. Data is ingested from CSV Files into SQL Server Database.
+Silver Layer: This layer includes data cleansing, standardization, and normalization processes to prepare data for analysis.
+Gold Layer: Houses business-ready data modeled into a star schema required for reporting and analytics.
 
 ---
 

@@ -24,6 +24,10 @@ This table serves as the historical foundation for the Gold layer view:
 
 CREATE SCHEMA analytics;
 GO
+    
+IF OBJECT_ID('analytics.bridge_cliente_empleado','U') IS NOT NULL
+DROP TABLE analytics.bridge_cliente_empleado;
+GO
 
 CREATE TABLE analytics.bridge_cliente_empleado (
 

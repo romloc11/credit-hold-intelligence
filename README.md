@@ -21,7 +21,7 @@ The project follows a **Medallion Architecture**, a layered data design pattern 
 Each layer progressively improves data quality and structure.
 
 <p align="center">
-  <img src="docs/architecture_dwh.drawio.png" width="100%">
+  <img src="docs/arch_dwh.drawio.png" width="100%">
 </p>
 
 1. Bronze Layer: Stores raw data as-is from the source systems. Data is ingested from CSV Files into SQL Server Database.
